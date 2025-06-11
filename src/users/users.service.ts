@@ -2,7 +2,7 @@
 /* eslint-disable prettier/prettier */
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateUserDTO, SignInDTO, UserDTO, UserUpdate } from './dto/user.dto';
+import { CreateUserDTO, SignInDTO, UserUpdate } from './dto/user.dto';
 import { JwtService } from '@nestjs/jwt';
 import * as moment from 'moment-timezone';
 
