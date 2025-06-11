@@ -1,0 +1,2572 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model CameraDefects {
+  id          Int    @id @default(autoincrement())
+  code        String @db.VarChar(10)
+  description String @db.VarChar(255)
+}
+
+model SGF_setup_control {
+  id                     Int       @id @default(autoincrement())
+  line                   String    @db.VarChar(45)
+  current_product        String    @db.VarChar(150)
+  product_setup          String    @db.VarChar(150)
+  requester              Int
+  responsible            Int
+  setup_type             String    @db.VarChar(50)
+  setup_start_date       DateTime? @db.DateTime(0)
+  UserStart              Int?
+  setup_end_date         DateTime? @db.DateTime(0)
+  UserEnd                Int?
+  interval_between_times String?   @db.VarChar(100)
+  observations           String?   @db.Text
+  status                 String    @db.VarChar(100)
+  CreateUser             Int
+  CreateDate             DateTime  @db.DateTime(0)
+}
+
+model SoundBoxDefects {
+  id          Int    @id @default(autoincrement())
+  code        String @db.VarChar(10)
+  description String @db.VarChar(255)
+}
+
+model TVDefects {
+  id          Int    @id @default(autoincrement())
+  code        String @db.VarChar(10)
+  description String @db.VarChar(255)
+}
+
+model accesscontrol_devices {
+  id       Int     @id @default(autoincrement())
+  name     String? @db.VarChar(30)
+  location String? @db.VarChar(10)
+  ipConfig String  @unique(map: "accesscontrol_devices_IPConfig_IDX") @db.VarChar(20)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model accesscontrol_measdata {
+  id       Int       @id @default(autoincrement())
+  device   Int?
+  unixdate Int?
+  datetime DateTime? @db.DateTime(0)
+  rsg      Int?
+  rsl      Int?
+  rsr      Int?
+  rhg      Int?
+  erg      String?   @db.VarChar(3)
+  msg      String?   @db.VarChar(100)
+  userid   String?   @db.VarChar(30)
+  tmp      Float?    @db.Float
+  hum      Float?    @db.Float
+  username String?   @db.VarChar(100)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model accesscontrol_user {
+  id           Int       @id @default(autoincrement())
+  userId       String    @unique(map: "userId") @db.VarChar(50)
+  userName     String    @db.VarChar(100)
+  profile      Int       @default(1)
+  print        Int       @default(1)
+  creationUser Int?
+  creationDate DateTime  @default(now()) @db.DateTime(0)
+  updateUser   Int?
+  updateDate   DateTime? @db.DateTime(0)
+  status       String    @default("ATIVO") @db.VarChar(15)
+}
+
+model brc_packing_label_package {
+  loteID                      Int                           @id
+  productBom                  String                        @db.VarChar(5)
+  productSku                  String                        @db.VarChar(50)
+  peso                        Float                         @default(0)
+  ordemProducao               String?                       @db.VarChar(30)
+  dataStart                   DateTime?                     @default(now()) @db.DateTime(0)
+  dataEnd                     DateTime?                     @db.DateTime(0)
+  userCreate                  Int?
+  userPrint                   Int?
+  status                      String?                       @default("ABERTO") @db.VarChar(20)
+  brc_packing_label_produto   brc_packing_label_produto     @relation(fields: [productBom, productSku], references: [bom, sku], onUpdate: Restrict, map: "brc_packing_label_package_brc_packing_label_produto_FK")
+  brc_packing_label_registros brc_packing_label_registros[]
+
+  @@index([productBom, productSku], map: "brc_packing_label_package_brc_packing_label_produto_FK")
+}
+
+model brc_packing_label_produto {
+  bom                       String                      @db.VarChar(5)
+  sku                       String                      @db.VarChar(50)
+  bomCode                   String                      @db.VarChar(50)
+  skuDescription            String                      @db.VarChar(100)
+  innerQtd                  Int
+  boxQtd                    Int
+  status                    String                      @db.VarChar(20)
+  createDate                DateTime                    @default(now()) @db.DateTime(0)
+  createUser                Int
+  updateDate                DateTime?                   @db.DateTime(0)
+  updateUser                Int?
+  family                    String?                     @db.VarChar(3)
+  innerHeight               Float?                      @db.Float
+  heightTolerance           Float?                      @db.Float
+  packingType               String                      @db.VarChar(20)
+  packingSn                 String?                     @db.VarChar(50)
+  brc_packing_label_package brc_packing_label_package[]
+
+  @@id([bom, sku])
+}
+
+model brc_packing_label_registros {
+  id                        Int                       @id @default(autoincrement())
+  bomId                     String                    @db.VarChar(5)
+  serialNumber              String                    @unique(map: "brc_packing_label_registros_unique") @db.VarChar(30)
+  loteID                    Int
+  boxPosition               String?                   @db.VarChar(100)
+  lineId                    String                    @db.VarChar(10)
+  dataIn                    DateTime?                 @default(now()) @db.DateTime(0)
+  userID                    Int
+  innerPeso                 Decimal?                  @db.Decimal(10, 0)
+  status                    String?                   @default("PASS") @db.VarChar(10)
+  bom                       String?                   @db.VarChar(100)
+  sku                       String?                   @db.VarChar(100)
+  brc_packing_label_package brc_packing_label_package @relation(fields: [loteID], references: [loteID], onUpdate: Restrict, map: "brc_packing_label_registros_brc_packing_label_package_FK")
+
+  @@index([loteID], map: "brc_packing_label_registros_brc_packing_label_package_FK")
+  @@index([bomId], map: "brc_packing_label_registros_brc_packing_label_produto_FK")
+}
+
+model brc_packing_label_update_changes {
+  id              Int       @id @default(autoincrement())
+  bom             String?   @db.VarChar(5)
+  sku             String?   @db.VarChar(50)
+  bomCode         String?   @db.VarChar(50)
+  skuDescription  String?   @db.VarChar(100)
+  innerQtd        Int?
+  boxQtd          Int?
+  status          String?   @db.VarChar(20)
+  createDate      DateTime? @db.DateTime(0)
+  createUser      Int?
+  updateDate      DateTime? @db.DateTime(0)
+  updateUser      Int?
+  family          String?   @db.VarChar(3)
+  innerHeight     Float?    @db.Float
+  heightTolerance Float?    @db.Float
+  changeType      String?   @db.VarChar(50)
+  packingType     String?   @db.VarChar(20)
+}
+
+model brc_remessa_history {
+  id           Int       @id @default(autoincrement())
+  Produto      String    @db.VarChar(30)
+  Remessa      String    @db.VarChar(50)
+  Data         DateTime  @db.DateTime(0)
+  SerialNumber String    @unique(map: "brc_remessa_history_unique") @db.VarChar(50)
+  DataIn       DateTime? @default(now()) @db.DateTime(0)
+  Status       String?   @default("FATURADO") @db.VarChar(30)
+}
+
+model brc_ssd_external_test {
+  id                   Int       @id @default(autoincrement())
+  SerialNumber         String    @db.VarChar(20)
+  SerialSub            String    @db.VarChar(20)
+  Result               String    @db.VarChar(10)
+  UserID               Int
+  DataIn               DateTime  @db.DateTime(0)
+  FinalSnGeneratedDate DateTime? @db.DateTime(0)
+}
+
+model center_at {
+  id               Int                @id @default(autoincrement())
+  center           Int                @unique(map: "center")
+  reports_scrap_at reports_scrap_at[]
+}
+
+model centro_at {
+  id     Int?
+  centro String @id @db.VarChar(100)
+}
+
+model control_sp_pedidos {
+  id             Int       @id @default(autoincrement())
+  code           String    @db.VarChar(60)
+  description    String    @db.VarChar(190)
+  dataIn         DateTime  @default(now()) @db.DateTime(0)
+  UserCad        Int
+  DateCad        DateTime  @db.DateTime(0)
+  rcAprovada     String?   @db.VarChar(100)
+  dataRcAprovada DateTime? @db.DateTime(0)
+  regPedido      String?   @db.VarChar(100)
+  userPedido     String?   @db.VarChar(10)
+  dataPedido     DateTime? @db.DateTime(0)
+  notaFiscal     String?   @db.VarChar(50)
+  quantidadeNf   Int?
+  nfData         DateTime? @db.DateTime(0)
+  userNf         String?   @db.VarChar(10)
+  status         String    @db.VarChar(90)
+  modality       String?   @db.VarChar(90)
+  dataChegada    DateTime? @db.Date
+  sector         String    @db.VarChar(100)
+
+  @@index([code], map: "code")
+  @@index([description], map: "description")
+}
+
+model defect_control {
+  id              Int       @id @default(autoincrement())
+  serial_number   String    @db.VarChar(100)
+  defect          String    @db.VarChar(150)
+  cause           String    @db.VarChar(200)
+  model           String    @db.VarChar(100)
+  shift           String    @db.VarChar(100)
+  technical_entry Int
+  data_entry      DateTime  @db.DateTime(0)
+  observation     String?   @db.Text
+  technical_exit  Int?
+  data_exit       DateTime? @db.DateTime(0)
+  date_search     DateTime? @db.Date
+}
+
+model deposit_at {
+  id               Int                @id @default(autoincrement())
+  deposit          String             @unique(map: "deposit") @db.VarChar(30)
+  reports_scrap_at reports_scrap_at[]
+}
+
+model deposito_at {
+  id       Int?
+  deposito String @id @db.VarChar(100)
+}
+
+model eqp_option {
+  ideqp_option    Int           @id
+  eqp_sn          String?       @db.VarChar(45)
+  lic_type        String?       @db.VarChar(45)
+  lic_code        String?       @db.VarChar(45)
+  lic_description String?       @db.VarChar(45)
+  eqp_optioncol   String?       @db.VarChar(45)
+  equipamentos    equipamentos? @relation(fields: [eqp_sn], references: [serial_number], onDelete: Restrict, onUpdate: Restrict, map: "pk_eqp_option_serial")
+
+  @@index([eqp_sn], map: "pk_eqp_option_serial_idx")
+}
+
+model equipamentos {
+  idequipamentos    Int          @id @default(autoincrement())
+  serial_number     String?      @unique(map: "serial_number_UNIQUE") @db.VarChar(45)
+  nome              String?      @db.VarChar(45)
+  modelo            String?      @db.VarChar(45)
+  fabricante        String?      @db.VarChar(45)
+  requer_cal        String?      @db.VarChar(15)
+  calib_certificado String?      @db.VarChar(45)
+  opc_code          Int?
+  nota_fiscal       String?      @db.VarChar(45)
+  data_nf           DateTime?    @db.DateTime(0)
+  data_baixa        DateTime?    @db.DateTime(0)
+  status            String?      @db.VarChar(45)
+  localizacao       String?      @db.VarChar(45)
+  data_calibracao   DateTime?    @db.Date
+  prox_calibracao   DateTime?    @db.Date
+  galpao            String?      @db.VarChar(45)
+  UserCad           String?      @db.VarChar(100)
+  DataCad           DateTime?    @db.DateTime(0)
+  UserUpdate        String?      @db.VarChar(100)
+  DataUpdate        DateTime?    @db.DateTime(0)
+  eqp_option        eqp_option[]
+}
+
+model equipment {
+  id                              Int                      @id @default(autoincrement())
+  serial                          String                   @unique(map: "unique_serial") @db.VarChar(30)
+  code_sap                        String?                  @db.VarChar(40)
+  description                     String                   @db.VarChar(80)
+  family                          String                   @db.VarChar(45)
+  brand                           String                   @db.VarChar(60)
+  requiresCalibration             String?                  @db.VarChar(15)
+  calibrationCertificate          String?                  @db.VarChar(60)
+  invoice                         String?                  @db.VarChar(80)
+  dataInvoice                     DateTime?                @db.Date
+  dischargeDate                   DateTime?                @db.DateTime(0)
+  shed                            String                   @db.VarChar(20)
+  status                          String                   @db.VarChar(20)
+  location                        String                   @db.VarChar(45)
+  calibrationDate                 DateTime?                @db.Date
+  nextCalibration                 DateTime?                @db.Date
+  UserCad                         Int?
+  DateCad                         DateTime?                @db.DateTime(0)
+  UserUpdate                      Int?
+  DateUpdate                      DateTime?                @db.DateTime(0)
+  sector                          String                   @db.VarChar(25)
+  supplier                        supplier                 @relation(fields: [brand], references: [brand], onUpdate: Restrict, map: "fk_equipments_brand")
+  shed_equipment_shedToshed       shed                     @relation("equipment_shedToshed", fields: [shed], references: [shed], onUpdate: Restrict, map: "fk_equipments_shed")
+  status_equipment_statusTostatus status                   @relation("equipment_statusTostatus", fields: [status], references: [status], onUpdate: Restrict, map: "fk_equipments_status")
+  tracelog_mv_equipments          tracelog_mv_equipments[]
+
+  @@index([brand], map: "brand")
+  @@index([family], map: "family")
+  @@index([shed], map: "shed")
+  @@index([status], map: "status")
+}
+
+model equipments_process {
+  id                                                         Int            @id @default(autoincrement())
+  code                                                       String         @unique(map: "code") @db.VarChar(15)
+  description                                                String         @db.VarChar(255)
+  location                                                   String         @db.VarChar(100)
+  shed                                                       String         @db.VarChar(20)
+  supplier                                                   String         @db.VarChar(60)
+  calibration_required                                       String         @db.VarChar(4)
+  calibration_certificate                                    String         @db.VarChar(150)
+  nf                                                         Int
+  date_of_discharge                                          DateTime?      @db.DateTime(0)
+  calibration_date                                           DateTime?      @db.DateTime(0)
+  next_calibration                                           DateTime?      @db.DateTime(0)
+  user_cad                                                   Int
+  date_cad                                                   DateTime       @db.DateTime(0)
+  user_up                                                    Int
+  date_up                                                    DateTime       @db.DateTime(0)
+  shed_equipments_process_shedToshed                         shed           @relation("equipments_process_shedToshed", fields: [shed], references: [shed], onUpdate: Restrict, map: "fk_equipments_process_shed")
+  supplier_equipments_process_supplierTosupplier             supplier       @relation("equipments_process_supplierTosupplier", fields: [supplier], references: [brand], onUpdate: Restrict, map: "fk_equipments_process_supplier")
+  tracelog_users_equipments_process_user_cadTotracelog_users tracelog_users @relation("equipments_process_user_cadTotracelog_users", fields: [user_cad], references: [UserID], onUpdate: Restrict, map: "fk_equipments_process_user_cad")
+  tracelog_users_equipments_process_user_upTotracelog_users  tracelog_users @relation("equipments_process_user_upTotracelog_users", fields: [user_up], references: [UserID], onUpdate: Restrict, map: "fk_equipments_process_user_up")
+
+  @@index([shed], map: "shed")
+  @@index([supplier], map: "supplier")
+  @@index([user_cad], map: "user_cad")
+  @@index([user_up], map: "user_up")
+}
+
+model family {
+  id         Int       @id @default(autoincrement())
+  family     String    @unique(map: "unique_family") @db.VarChar(45)
+  status     String    @db.VarChar(10)
+  UserCad    Int?
+  DateCad    DateTime? @db.DateTime(0)
+  UserUpdate Int?
+  DateUpdate DateTime? @db.DateTime(0)
+}
+
+model fornecedor {
+  idfornecedor  Int       @id @default(autoincrement())
+  nome          String?   @db.VarChar(100)
+  nome_fantasia String?   @unique(map: "nome_fantasia_UNIQUE") @db.VarChar(45)
+  contato       String?   @db.VarChar(45)
+  email         String?   @db.VarChar(100)
+  origem        String?   @db.VarChar(45)
+  data          DateTime? @db.DateTime(0)
+}
+
+model historico_tecnicos {
+  id               Int                             @id @default(autoincrement())
+  tecnico_id       Int?
+  action_type      historico_tecnicos_action_type?
+  action_timestamp DateTime?                       @db.DateTime(0)
+  details          String?                         @db.Text
+
+  @@index([tecnico_id], map: "tecnico_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model inspection {
+  id               Int       @id @default(autoincrement())
+  embarque         String?   @db.VarChar(60)
+  code             String?   @unique(map: "unique_code_inspection") @db.VarChar(60)
+  partNumberFornec Int?
+  description      String?   @db.VarChar(40)
+  quantity         Int?
+  packgeQuantity   Int?
+  dateFilter       DateTime? @db.Date
+}
+
+model jig_test {
+  id                             Int       @id @default(autoincrement())
+  serial                         String?   @unique(map: "serial") @db.VarChar(30)
+  description                    String?   @db.VarChar(250)
+  codeSAP                        String?   @db.VarChar(40)
+  product                        String?   @db.VarChar(190)
+  family                         String?   @db.VarChar(45)
+  brand                          String?   @db.VarChar(60)
+  location                       String?   @db.VarChar(45)
+  valueJig                       Decimal?  @db.Decimal(10, 2)
+  nf                             String?   @db.VarChar(20)
+  po                             String?   @db.VarChar(20)
+  dateOfCharged                  DateTime? @db.Date
+  shed                           String?   @db.VarChar(20)
+  status                         String?   @db.VarChar(20)
+  UserCad                        Int?
+  DateCad                        DateTime? @db.DateTime(0)
+  UserUpdate                     Int?
+  DateUpdate                     DateTime? @db.DateTime(0)
+  sector                         String    @db.VarChar(100)
+  supplier                       supplier? @relation(fields: [brand], references: [brand], onDelete: Restrict, onUpdate: Restrict, map: "fk_jig_brand")
+  shed_jig_test_shedToshed       shed?     @relation("jig_test_shedToshed", fields: [shed], references: [shed], onDelete: Restrict, onUpdate: Restrict, map: "fk_jig_shed")
+  status_jig_test_statusTostatus status?   @relation("jig_test_statusTostatus", fields: [status], references: [status], onDelete: Restrict, onUpdate: Restrict, map: "fk_jig_status")
+
+  @@index([brand], map: "brand")
+  @@index([family], map: "family")
+  @@index([product], map: "product")
+  @@index([shed], map: "shed")
+  @@index([status], map: "status")
+}
+
+model lcdRecovery {
+  id           Int      @id @default(autoincrement())
+  serial       String   @db.VarChar(40)
+  material     String   @db.VarChar(40)
+  process      String   @db.VarChar(40)
+  Product      String   @db.VarChar(40)
+  quantity     Int
+  unitaryValue Int
+  amount       Int
+  status       String   @db.VarChar(40)
+  userCad      String   @db.VarChar(40)
+  dataCad      DateTime @db.DateTime(0)
+  userUpdate   String   @db.VarChar(40)
+  dataUpdate   DateTime @db.DateTime(0)
+}
+
+model linesetup_tool_path {
+  id         Int       @id @default(autoincrement())
+  modelName  String    @db.VarChar(50)
+  embarque   String    @unique(map: "linesetup_tool_path_unique") @db.VarChar(15)
+  softPath   String    @db.VarChar(300)
+  softName   String    @db.VarChar(100)
+  toolPath   String?   @db.VarChar(300)
+  scriptPath String?   @db.VarChar(300)
+  createUser String    @db.VarChar(20)
+  dataIn     DateTime? @default(now()) @db.DateTime(0)
+  status     String    @default("EM USO") @db.VarChar(20)
+}
+
+model linha_prod {
+  id              Int               @id @default(autoincrement())
+  line            String?           @unique(map: "unique_line") @db.VarChar(45)
+  support_tickets support_tickets[]
+}
+
+model material_at {
+  id               Int                @id @default(autoincrement())
+  material         String?            @unique(map: "material_at_unique") @db.VarChar(100)
+  UserCad          String?            @db.VarChar(100)
+  DataCad          DateTime?          @db.DateTime(0)
+  reports_scrap_at reports_scrap_at[]
+
+  @@index([material], map: "material")
+}
+
+model mov_eqp {
+  idmov_entrada Int       @id @default(autoincrement())
+  destino_ini   String?   @db.VarChar(45)
+  destino_final String?   @db.VarChar(45)
+  galpao        String?   @db.VarChar(45)
+  tipo          String?   @db.VarChar(45)
+  data          DateTime? @db.DateTime(0)
+  usuario       String?   @db.VarChar(45)
+  serial        String?   @db.VarChar(45)
+}
+
+model mov_jigs {
+  idmov_tools   Int       @id @default(autoincrement())
+  eqp_type      String?   @db.VarChar(45)
+  local_ini     String?   @db.VarChar(45)
+  local_destino String?   @db.VarChar(45)
+  eqp_code      String?   @db.VarChar(45)
+  data_mov      DateTime? @db.DateTime(0)
+  mov_type      String?   @db.VarChar(45)
+  galpao        String?   @db.VarChar(15)
+  user          String?   @db.VarChar(45)
+}
+
+model mov_spare_part {
+  id          Int       @id @default(autoincrement())
+  code        String?   @db.VarChar(50)
+  description String    @db.VarChar(80)
+  line        String    @db.VarChar(20)
+  amountMov   Int
+  shed        String    @db.VarChar(20)
+  commentsMov String?   @db.VarChar(200)
+  status      String    @db.VarChar(20)
+  UserCad     Int?
+  DateCad     DateTime? @db.DateTime(0)
+  UserReturn  Int?
+  DateReturn  DateTime? @db.DateTime(0)
+  dateSearch  DateTime  @db.Date
+  oneWay      String    @db.VarChar(6)
+  sector      String    @db.VarChar(100)
+
+  @@index([description], map: "description")
+}
+
+model ns_check_ddr {
+  id             Int             @id @default(autoincrement())
+  UserID         Int?
+  Line           String?         @db.VarChar(10)
+  SerialNumber   String          @unique(map: "SerialNumber_UNIQUE") @db.VarChar(45)
+  DataIn         DateTime?       @db.DateTime(0)
+  DataFail       DateTime?       @db.DateTime(0)
+  Status         String?         @db.VarChar(10)
+  tracelog_users tracelog_users? @relation(fields: [UserID], references: [UserID], onDelete: Restrict, onUpdate: Restrict, map: "fk_userID")
+
+  @@index([UserID], map: "fk_userID_idx")
+}
+
+model packing_embarque {
+  ID                    Int                     @id @default(autoincrement())
+  Modelo                String                  @db.VarChar(30)
+  Processo              String?                 @unique(map: "packing_embarque_UN") @db.VarChar(30)
+  QTD                   Int?
+  SwVersion             String?                 @db.VarChar(100)
+  status                String                  @default("ATIVO") @db.VarChar(20)
+  packing_modelo        packing_modelo          @relation(fields: [Modelo], references: [Cod_sap], onUpdate: Restrict, map: "packing_embarque_FK")
+  tracelog_tool_control tracelog_tool_control[]
+
+  @@index([Modelo], map: "packing_embarque_FK")
+}
+
+model packing_linha {
+  ID                Int                @id @default(autoincrement())
+  LinhaID           String             @unique(map: "LinhaID") @db.VarChar(10)
+  Status            String?            @db.VarChar(30)
+  tracelog_tv_setup tracelog_tv_setup?
+}
+
+model packing_modelo {
+  ID                            Int                             @id @default(autoincrement())
+  Nome                          String                          @db.VarChar(30)
+  Cod_sap                       String?                         @unique(map: "packing_modelo_UN") @db.VarChar(30)
+  Descricao                     String?                         @db.VarChar(90)
+  Status                        String                          @default("ATIVO") @db.VarChar(30)
+  Qtd_inner                     Int?                            @default(1)
+  Qtd_caixa                     Int?                            @default(1)
+  Peso_master                   Float?                          @default(0) @db.Float
+  Peso_inner                    Float?                          @default(0) @db.Float
+  Ean                           String?                         @db.VarChar(100)
+  Roteiro                       String?                         @db.VarChar(30)
+  ProcessLevel                  String?                         @db.VarChar(8)
+  FamilyType                    String?                         @db.VarChar(50)
+  auxPcbaType                   String?                         @default("INTEGRATED") @db.VarChar(30)
+  prefixSerial                  String?                         @default("") @db.VarChar(50)
+  createUser                    Int?
+  createDate                    DateTime?                       @default(now()) @db.DateTime(0)
+  updateUser                    Int?
+  updateDate                    DateTime?                       @db.DateTime(0)
+  packing_embarque              packing_embarque[]
+  tracelog_rate                 tracelog_rate[]
+  tracelog_ssd_ddr_relationship tracelog_ssd_ddr_relationship[]
+  tracelog_tv_assembly          tracelog_tv_assembly[]
+  tracelog_tv_itemlist          tracelog_tv_itemlist[]
+  tracelog_tv_setup             tracelog_tv_setup[]
+}
+
+model packing_nome_estacao {
+  ID        Int     @id @default(autoincrement())
+  Sigla     String  @db.VarChar(30)
+  Descricao String? @db.VarChar(30)
+  Status    String? @db.VarChar(30)
+}
+
+model packing_registro_sn {
+  ID             Int     @id @default(autoincrement())
+  SN             String  @unique(map: "SN") @db.VarChar(20)
+  CaixaBox       String? @db.VarChar(30)
+  Modelo         String? @db.VarChar(30)
+  Embarque       String? @db.VarChar(30)
+  Data_embalagem String? @db.VarChar(30)
+  Linha          String? @db.VarChar(30)
+  ID_Operacional String? @db.VarChar(30)
+}
+
+model packing_roteiro {
+  ID     Int     @id @default(autoincrement())
+  Nome   String  @db.VarChar(30)
+  Rota   String? @db.VarChar(30)
+  Status String? @db.VarChar(30)
+}
+
+model plate_defects {
+  id          Int     @id @default(autoincrement())
+  code        String  @unique(map: "plate_defects_unique_1") @db.VarChar(6)
+  description String? @db.VarChar(155)
+}
+
+model plates_model {
+  id    Int     @id @default(autoincrement())
+  model String? @unique(map: "model_UNIQUE") @db.VarChar(75)
+}
+
+model process_at {
+  id               Int                @id @default(autoincrement())
+  process          String             @unique(map: "process") @db.VarChar(30)
+  reports_scrap_at reports_scrap_at[]
+}
+
+model process_products {
+  id          Int       @id @default(autoincrement())
+  serial      String?   @db.VarChar(55)
+  description String?   @db.VarChar(110)
+  amount      Int?
+  galpao      String?   @db.VarChar(100)
+  observation String?   @db.VarChar(200)
+  image       String?   @db.VarChar(255)
+  UserCad     String?   @db.VarChar(100)
+  DataCad     DateTime? @db.DateTime(0)
+  UserUpdate  String?   @db.VarChar(100)
+  DataUpdate  DateTime? @db.DateTime(0)
+}
+
+model process_products_mov {
+  id          Int       @id @default(autoincrement())
+  description String?   @db.VarChar(160)
+  line        String?   @db.VarChar(100)
+  galpao      String?   @db.VarChar(100)
+  amount      Int?
+  UserCad     String?   @db.VarChar(45)
+  DataCad     DateTime? @db.DateTime(0)
+}
+
+model processo_at {
+  id       Int     @id @default(autoincrement())
+  processo String? @db.VarChar(100)
+}
+
+model product {
+  id                            Int       @id @default(autoincrement())
+  boarding                      String?   @db.VarChar(30)
+  product                       String    @db.VarChar(190)
+  family                        String    @db.VarChar(45)
+  brand                         String?   @db.VarChar(60)
+  codeSAP                       String?   @db.VarChar(45)
+  shed                          String?   @db.VarChar(20)
+  location                      String?   @db.VarChar(45)
+  status                        String?   @db.VarChar(20)
+  similar                       String?   @db.VarChar(255)
+  UserCad                       Int?
+  DateCad                       DateTime? @db.DateTime(0)
+  UserUpdate                    Int?
+  DateUpdate                    DateTime? @db.DateTime(0)
+  supplier                      supplier? @relation(fields: [brand], references: [brand], onDelete: Restrict, onUpdate: Restrict, map: "product_ibfk_2")
+  shed_product_shedToshed       shed?     @relation("product_shedToshed", fields: [shed], references: [shed], onDelete: Restrict, onUpdate: Restrict, map: "product_ibfk_3")
+  status_product_statusTostatus status?   @relation("product_statusTostatus", fields: [status], references: [status], onDelete: Restrict, onUpdate: Restrict, map: "product_ibfk_4")
+
+  @@unique([product, shed], map: "unique_product_shed")
+  @@index([brand], map: "brand")
+  @@index([family], map: "family")
+  @@index([shed], map: "shed")
+  @@index([status], map: "status")
+}
+
+model product_at {
+  id               Int                @id @default(autoincrement())
+  product          String             @unique(map: "product") @db.VarChar(30)
+  reports_scrap_at reports_scrap_at[]
+}
+
+model products_process {
+  id                               Int       @id @default(autoincrement())
+  serial                           String    @db.VarChar(55)
+  description                      String    @db.VarChar(110)
+  amount                           Int
+  shed                             String?   @db.VarChar(20)
+  observation                      String?   @db.VarChar(200)
+  image                            String?   @db.VarChar(255)
+  minimumStock                     Int
+  location                         String    @db.VarChar(80)
+  UserCad                          String?   @db.VarChar(100)
+  DataCad                          DateTime? @db.DateTime(0)
+  UserUpdate                       String?   @db.VarChar(100)
+  DataUpdate                       DateTime? @db.DateTime(0)
+  status                           String?   @db.VarChar(255)
+  shed_products_process_shedToshed shed?     @relation("products_process_shedToshed", fields: [shed], references: [shed], onDelete: Restrict, onUpdate: Restrict, map: "fk_product_process_shed")
+
+  @@index([shed], map: "shed")
+}
+
+model produto {
+  idproduto      Int       @id @default(autoincrement())
+  embarque       String?   @db.VarChar(45)
+  descricao      String?   @unique(map: "descricao") @db.VarChar(255)
+  linhacomercial String?   @db.VarChar(45)
+  modelo         String    @db.VarChar(45)
+  nome_fantasia  String?   @db.VarChar(45)
+  codextrema     String    @db.VarChar(45)
+  galpao         String?   @db.VarChar(100)
+  UserCad        String?   @db.VarChar(100)
+  DataCad        DateTime? @db.DateTime(0)
+  UserUpdate     String?   @db.VarChar(100)
+  DataUpdate     String?   @db.VarChar(100)
+}
+
+model produto_at {
+  id      Int       @id @default(autoincrement())
+  produto String?   @db.VarChar(100)
+  UserCad String?   @db.VarChar(100)
+  DataCad DateTime? @db.DateTime(0)
+}
+
+model programming_npi {
+  id                               Int       @id @default(autoincrement())
+  code                             String    @db.VarChar(100)
+  family                           String    @db.VarChar(20)
+  description                      String    @db.VarChar(150)
+  type_of_shipment                 String    @db.VarChar(5)
+  type_of_production               String    @db.VarChar(100)
+  product_class                    String    @db.VarChar(10)
+  lote_and_fixture                 String    @db.VarChar(20)
+  arrival_of_mp_and_fixture        String    @db.VarChar(100)
+  halb                             String    @db.VarChar(250)
+  estimated_engineering_pilot_date DateTime? @db.Date
+  estimated_pilot_production_date  DateTime? @db.Date
+  status                           String    @db.VarChar(20)
+  UserCreate                       Int
+  DateCreate                       DateTime  @db.DateTime(0)
+  justification_engineering        String?   @db.Text
+  engineering_pilot_status         String?   @db.VarChar(20)
+  production_pilot_status          String?   @db.VarChar(20)
+  justification_production         String?   @db.Text
+  date_of_the_month                DateTime  @db.Date
+}
+
+model programming_npi_support {
+  id                               Int       @id @default(autoincrement())
+  code                             String    @db.VarChar(100)
+  family                           String    @db.VarChar(20)
+  description                      String    @db.VarChar(150)
+  type_of_shipment                 String    @db.VarChar(5)
+  type_of_production               String    @db.VarChar(100)
+  product_class                    String    @db.VarChar(10)
+  lote_and_fixture                 String    @db.VarChar(20)
+  arrival_of_mp_and_fixture        String    @db.VarChar(100)
+  estimated_engineering_pilot_date DateTime? @db.Date
+  estimated_pilot_production_date  DateTime? @db.Date
+  status                           String    @db.VarChar(20)
+  UserCreate                       Int
+  DateCreate                       DateTime  @db.DateTime(0)
+  justification_engineering        String?   @db.Text
+  engineering_pilot_status         String?   @db.VarChar(20)
+  production_pilot_status          String?   @db.VarChar(20)
+  justification_production         String?   @db.Text
+  halb                             String    @db.VarChar(250)
+  UserUpdate                       Int
+  DateUpdate                       DateTime? @db.DateTime(0)
+  date_of_the_month                DateTime? @db.Date
+}
+
+model reg_calib_eqp {
+  id                 Int       @id @default(autoincrement())
+  serial_number      String?   @db.VarChar(45)
+  desc_eqp           String?   @db.VarChar(45)
+  certificado_antigo String?   @db.VarChar(45)
+  certificado_novo   String?   @db.VarChar(45)
+  calibracao_atual   DateTime? @db.Date
+  proxima_calibracao DateTime? @db.Date
+  data_registro      DateTime? @db.DateTime(0)
+}
+
+model relatorio_diario_at {
+  id       Int       @id @default(autoincrement())
+  lider    String?   @db.VarChar(45)
+  modelo   String?   @db.VarChar(65)
+  galpao   String?   @db.VarChar(20)
+  linha    String?   @db.VarChar(18)
+  turno    String?   @db.VarChar(45)
+  entrada  Int?
+  saida    Int?
+  delta    Int?
+  data_cad DateTime? @db.DateTime(0)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model repair_cause_list {
+  causeCode        String             @id @db.VarChar(8)
+  causeDescription String             @db.VarChar(100)
+  Status           String?            @db.VarChar(8)
+  repair_registros repair_registros[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model repair_defect_list {
+  defCode                                                             String             @id @db.VarChar(6)
+  defType                                                             String             @db.VarChar(30)
+  defDescription                                                      String?            @db.VarChar(100)
+  Status                                                              String?            @db.VarChar(10)
+  repair_registros_repair_registros_defInputCodeTorepair_defect_list  repair_registros[] @relation("repair_registros_defInputCodeTorepair_defect_list")
+  repair_registros_repair_registros_defDiagATCodeTorepair_defect_list repair_registros[] @relation("repair_registros_defDiagATCodeTorepair_defect_list")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model repair_registros {
+  id                                                                    Int                 @id @default(autoincrement())
+  serialNumber                                                          String              @db.VarChar(20)
+  modelName                                                             String              @db.VarChar(50)
+  codSAP                                                                String              @db.VarChar(30)
+  codEmbarque                                                           String?             @db.VarChar(10)
+  modelDescription                                                      String?             @db.VarChar(100)
+  defInputCode                                                          String              @db.VarChar(10)
+  defDiagATCode                                                         String?             @db.VarChar(10)
+  defCauseCode                                                          String?             @db.VarChar(10)
+  dateInputDef                                                          DateTime            @db.DateTime(0)
+  dateDiagDef                                                           DateTime?           @db.DateTime(0)
+  repairDate                                                            DateTime?           @db.DateTime(0)
+  soluctionCode                                                         String              @db.VarChar(10)
+  componentLocation                                                     String?             @db.VarChar(20)
+  notes                                                                 String?             @db.Text
+  Status                                                                String?             @db.VarChar(100)
+  repair_cause_list                                                     repair_cause_list?  @relation(fields: [defCauseCode], references: [causeCode], onDelete: Restrict, onUpdate: Restrict, map: "repair_registros_repair_cause_list_FK")
+  repair_defect_list_repair_registros_defInputCodeTorepair_defect_list  repair_defect_list  @relation("repair_registros_defInputCodeTorepair_defect_list", fields: [defInputCode], references: [defCode], onUpdate: Restrict, map: "repair_registros_repair_defect_list_FK")
+  repair_defect_list_repair_registros_defDiagATCodeTorepair_defect_list repair_defect_list? @relation("repair_registros_defDiagATCodeTorepair_defect_list", fields: [defDiagATCode], references: [defCode], onDelete: Restrict, onUpdate: Restrict, map: "repair_registros_repair_defect_list_FK_1")
+  repair_solve_list                                                     repair_solve_list   @relation(fields: [soluctionCode], references: [soluctionCode], onUpdate: Restrict, map: "repair_registros_repair_solve_list_FK")
+
+  @@index([defCauseCode], map: "repair_registros_repair_cause_list_FK")
+  @@index([defInputCode], map: "repair_registros_repair_defect_list_FK")
+  @@index([defDiagATCode], map: "repair_registros_repair_defect_list_FK_1")
+  @@index([soluctionCode], map: "repair_registros_repair_solve_list_FK")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model repair_solve_list {
+  soluctionCode        String             @id @db.VarChar(8)
+  soluctionDescription String             @db.VarChar(100)
+  Status               String?            @db.VarChar(8)
+  repair_registros     repair_registros[]
+}
+
+model reports_lcd_at {
+  id             Int       @id @default(autoincrement())
+  serial         String    @unique(map: "unique_serial") @db.VarChar(100)
+  materialCode   String    @db.VarChar(50)
+  description    String    @db.VarChar(100)
+  origem         String    @db.VarChar(100)
+  defectDetected String    @db.VarChar(255)
+  quantity       Int
+  unitaryValue   Decimal   @db.Decimal(10, 2)
+  amount         Decimal   @db.Decimal(10, 2)
+  status         String?   @db.VarChar(30)
+  dateSearch     DateTime  @db.Date
+  UserCad        Int
+  DateCad        DateTime? @db.DateTime(0)
+  user_at        user_at   @relation(fields: [UserCad], references: [login], onUpdate: Restrict, map: "fk_user_at_user")
+
+  @@index([UserCad], map: "fk_user_at_user")
+}
+
+model reports_scrap_at {
+  id          Int         @id @default(autoincrement())
+  center      Int
+  material    String      @db.VarChar(30)
+  process     String      @db.VarChar(30)
+  product     String      @db.VarChar(30)
+  deposit     String      @db.VarChar(30)
+  usedCost    String      @db.VarChar(155)
+  quantity    Int
+  unitCost    Decimal     @db.Decimal(10, 2)
+  totalCost   Decimal     @db.Decimal(10, 2)
+  reason      String?     @db.Text
+  actions     String      @db.VarChar(255)
+  photograph  String      @db.VarChar(290)
+  responsible String      @db.VarChar(255)
+  status      String      @db.VarChar(250)
+  DataSearch  DateTime?   @db.Date
+  userCad     Int?
+  DataCad     DateTime?   @db.DateTime(0)
+  center_at   center_at   @relation(fields: [center], references: [center], onUpdate: Restrict, map: "fk_reports_scrap_at_center")
+  deposit_at  deposit_at  @relation(fields: [deposit], references: [deposit], onUpdate: Restrict, map: "fk_reports_scrap_at_deposit")
+  material_at material_at @relation(fields: [material], references: [material], onUpdate: Restrict, map: "fk_reports_scrap_at_material")
+  process_at  process_at  @relation(fields: [process], references: [process], onUpdate: Restrict, map: "fk_reports_scrap_at_process")
+  product_at  product_at  @relation(fields: [product], references: [product], onUpdate: Restrict, map: "fk_reports_scrap_at_product")
+
+  @@index([center], map: "center")
+  @@index([deposit], map: "deposit")
+  @@index([material], map: "material")
+  @@index([process], map: "process")
+  @@index([product], map: "product")
+}
+
+model reports_spare_part_at {
+  id             Int       @id @default(autoincrement())
+  serial         String    @unique(map: "reports_spare_part_at_unique") @db.VarChar(50)
+  materialCode   String    @db.VarChar(100)
+  description    String    @db.VarChar(100)
+  origem         String    @db.VarChar(100)
+  defectDetected String    @db.VarChar(255)
+  quantity       Int?
+  unitaryValue   Decimal?  @db.Decimal(10, 0)
+  amount         Decimal?  @db.Decimal(10, 0)
+  status         String    @db.VarChar(100)
+  dateSearch     DateTime? @db.Date
+  UserCad        Int
+  DateCad        DateTime? @db.DateTime(0)
+}
+
+model reports_stove_at {
+  id                               Int       @id @default(autoincrement())
+  serial                           String    @db.VarChar(100)
+  description                      String    @db.VarChar(100)
+  stoveLocation                    String    @db.VarChar(100)
+  shed                             String    @db.VarChar(100)
+  status                           String?   @db.VarChar(30)
+  UserCad                          Int
+  startDate                        DateTime? @db.DateTime(0)
+  endDate                          DateTime? @db.DateTime(0)
+  exitUser                         Int?
+  exitTime                         DateTime? @db.DateTime(0)
+  dateSearch                       DateTime? @db.Date
+  shed_reports_stove_at_shedToshed shed      @relation("reports_stove_at_shedToshed", fields: [shed], references: [shed], onUpdate: Restrict, map: "fk_stove_at_shed")
+  stove                            stove     @relation(fields: [stoveLocation], references: [stove], onUpdate: Restrict, map: "fk_stove_at_stove")
+  user_at                          user_at   @relation(fields: [UserCad], references: [login], onUpdate: Restrict, map: "fk_stove_at_user")
+
+  @@index([shed], map: "fk_stove_at_shed")
+  @@index([stoveLocation], map: "fk_stove_at_stove")
+  @@index([UserCad], map: "fk_stove_at_user")
+}
+
+model return_spare {
+  id          Int       @id @default(autoincrement())
+  descricao   String?   @db.VarChar(100)
+  line        String?   @db.VarChar(100)
+  qtd_remove  Int?
+  galpao      String?   @db.VarChar(100)
+  UserReturn  String?   @db.VarChar(100)
+  observacoes String?   @db.VarChar(255)
+  discarte    Int?
+  DataReturn  DateTime? @db.DateTime(0)
+}
+
+model return_spare_part {
+  id             Int       @id @default(autoincrement())
+  description    String    @db.VarChar(80)
+  shed           String    @db.VarChar(20)
+  line           String    @db.VarChar(20)
+  amountReturn   Int
+  discart        Int
+  commentsReturn String    @db.VarChar(200)
+  UserReturn     Int?
+  DateReturn     DateTime? @db.DateTime(0)
+}
+
+model scrap_at {
+  id                 Int       @id @default(autoincrement())
+  centro             String?   @db.VarChar(255)
+  descricao_material String?   @db.VarChar(255)
+  processo           String?   @db.VarChar(255)
+  produto_id         String?   @db.VarChar(70)
+  deposito           String?   @db.VarChar(255)
+  custo_usado        String?   @db.VarChar(155)
+  qtd                Int?
+  custo_unit         String?   @db.VarChar(100)
+  custo_total        String?   @db.VarChar(100)
+  motivo             String?   @db.Text
+  acoes              String?   @db.VarChar(255)
+  foto               String?   @db.VarChar(290)
+  responsavel        String?   @db.VarChar(255)
+  status             String?   @db.VarChar(250)
+  user_cad           String?   @db.VarChar(100)
+  DataCad            DateTime? @db.Date
+
+  @@index([produto_id], map: "produto_id")
+}
+
+model setor {
+  id    Int     @id @default(autoincrement())
+  setor String? @db.VarChar(45)
+}
+
+model shed {
+  id                                                       Int                      @id @default(autoincrement())
+  shed                                                     String                   @unique(map: "unique_shed") @db.VarChar(20)
+  equipment_equipment_shedToshed                           equipment[]              @relation("equipment_shedToshed")
+  equipments_process_equipments_process_shedToshed         equipments_process[]     @relation("equipments_process_shedToshed")
+  jig_test_jig_test_shedToshed                             jig_test[]               @relation("jig_test_shedToshed")
+  product_product_shedToshed                               product[]                @relation("product_shedToshed")
+  products_process_products_process_shedToshed             products_process[]       @relation("products_process_shedToshed")
+  reports_stove_at_reports_stove_at_shedToshed             reports_stove_at[]       @relation("reports_stove_at_shedToshed")
+  spare_part_spare_part_shedToshed                         spare_part[]             @relation("spare_part_shedToshed")
+  tracelog_mv_equipments_tracelog_mv_equipments_shedToshed tracelog_mv_equipments[] @relation("tracelog_mv_equipments_shedToshed")
+}
+
+model sintomas {
+  id          Int     @id @default(autoincrement())
+  descSintoma String? @db.VarChar(45)
+}
+
+model solucoes {
+  id          Int     @id @default(autoincrement())
+  descSolucao String? @db.VarChar(55)
+}
+
+model sound_box_defects {
+  id          Int    @id @default(autoincrement())
+  code        String @db.VarChar(10)
+  description String @db.VarChar(255)
+}
+
+model spare_part {
+  id                               Int       @id @default(autoincrement())
+  InternalCode                     String?   @db.VarChar(100)
+  code                             String    @db.VarChar(30)
+  description                      String    @db.VarChar(190)
+  product                          String    @db.VarChar(190)
+  family                           String    @db.VarChar(45)
+  amount                           Int
+  meter                            Float?    @db.Float
+  similarTo                        String?   @db.Text
+  status                           String    @db.VarChar(20)
+  location                         String    @db.VarChar(45)
+  brand                            String    @db.VarChar(60)
+  profileSpare                     String?   @db.VarChar(200)
+  minimumStock                     Int
+  shed                             String    @db.VarChar(20)
+  comments                         String?   @db.VarChar(200)
+  UserCad                          Int?
+  DateCad                          DateTime? @db.DateTime(0)
+  UserUpdate                       Int?
+  DateUpdate                       DateTime? @db.DateTime(0)
+  sector                           String    @db.VarChar(100)
+  supplier                         supplier  @relation(fields: [brand], references: [brand], onUpdate: Restrict, map: "fk_spare_part_brand")
+  shed_spare_part_shedToshed       shed      @relation("spare_part_shedToshed", fields: [shed], references: [shed], onUpdate: Restrict, map: "fk_spare_part_shed")
+  status_spare_part_statusTostatus status    @relation("spare_part_statusTostatus", fields: [status], references: [status], onUpdate: Restrict, map: "fk_spare_part_status")
+
+  @@index([brand], map: "brand")
+  @@index([code], map: "code")
+  @@index([family], map: "family")
+  @@index([product], map: "product")
+  @@index([shed], map: "shed")
+  @@index([status], map: "status")
+}
+
+model spmaterial {
+  idspmaterial    Int       @id @default(autoincrement())
+  code            String?   @db.VarChar(50)
+  descricao       String?   @db.VarChar(250)
+  produto         String?   @db.VarChar(255)
+  modelo          String?   @db.VarChar(30)
+  qtd             Int?
+  metro           String?   @db.VarChar(100)
+  similar_to      String?   @db.VarChar(50)
+  status          String?   @db.VarChar(20)
+  localizacao     String?   @db.VarChar(45)
+  nome_fantasia   String?   @db.VarChar(95)
+  imageSpare      String?   @db.VarChar(350)
+  estoq_min       Int?
+  galpao          String?   @db.VarChar(100)
+  comments        String?   @db.VarChar(255)
+  UserCad         String?   @db.VarChar(100)
+  rcAprovada      String?   @db.VarChar(200)
+  pedidoAprovado  String?   @db.VarChar(100)
+  previsaoChegada DateTime? @db.Date
+  DataCad         DateTime? @db.DateTime(0)
+  UserUpdate      String?   @db.VarChar(100)
+  DataUpdate      DateTime? @db.DateTime(0)
+}
+
+model spuser {
+  idspuser       Int       @id @default(autoincrement())
+  name           String?   @db.VarChar(100)
+  email          String?   @unique(map: "email_UNIQUE") @db.VarChar(200)
+  login          String?   @unique(map: "idx_spuser_login") @db.VarChar(45)
+  password       String?   @db.VarChar(45)
+  sector         String?   @db.VarChar(45)
+  profilePicture String?   @db.VarChar(255)
+  hierarchy      String?   @db.VarChar(45)
+  isOnline       String?   @db.VarChar(45)
+  DataLogin      DateTime? @db.DateTime(0)
+  UserCad        String?   @db.VarChar(100)
+  DataCad        DateTime? @db.DateTime(0)
+}
+
+model status {
+  id                                   Int          @id @default(autoincrement())
+  status                               String       @unique(map: "unique_status") @db.VarChar(20)
+  equipment_equipment_statusTostatus   equipment[]  @relation("equipment_statusTostatus")
+  jig_test_jig_test_statusTostatus     jig_test[]   @relation("jig_test_statusTostatus")
+  product_product_statusTostatus       product[]    @relation("product_statusTostatus")
+  spare_part_spare_part_statusTostatus spare_part[] @relation("spare_part_statusTostatus")
+}
+
+model stove {
+  id               Int                @id @default(autoincrement())
+  stove            String             @unique(map: "unique_stove") @db.VarChar(100)
+  reports_stove_at reports_stove_at[]
+}
+
+model supplier {
+  id                                                       Int                  @id @default(autoincrement())
+  supplier                                                 String               @db.VarChar(100)
+  brand                                                    String               @unique(map: "supplier_unique") @db.VarChar(60)
+  email                                                    String?              @db.VarChar(100)
+  contact                                                  String?              @db.VarChar(40)
+  origin                                                   String               @db.VarChar(20)
+  UserCad                                                  Int?
+  DateCad                                                  DateTime?            @db.DateTime(0)
+  UserUpdate                                               Int?
+  DateUpdate                                               DateTime?            @db.DateTime(0)
+  equipment                                                equipment[]
+  equipments_process_equipments_process_supplierTosupplier equipments_process[] @relation("equipments_process_supplierTosupplier")
+  jig_test                                                 jig_test[]
+  product                                                  product[]
+  spare_part                                               spare_part[]
+
+  @@index([brand], map: "idx_brand")
+}
+
+model support_tickets {
+  id                 Int                     @id @default(autoincrement())
+  line               String?                 @db.VarChar(45)
+  model              String?                 @db.VarChar(100)
+  description        String?                 @db.Text
+  status             support_tickets_status?
+  opening_date       DateTime?               @db.DateTime(0)
+  resolution_summary String?                 @db.Text
+  closure_date       DateTime?               @db.DateTime(0)
+  linha_prod         linha_prod?             @relation(fields: [line], references: [line], onDelete: Restrict, onUpdate: Restrict, map: "fk_line")
+
+  @@index([line], map: "fk_line")
+}
+
+model tracelog_ch_cause {
+  Id          Int       @id @default(autoincrement())
+  Cause       String?   @db.VarChar(35)
+  Description String?   @db.VarChar(50)
+  SectorId    Int?
+  CreateUser  Int?
+  CreateDate  DateTime? @db.DateTime(0)
+  UpdateUser  Int?
+  UpdateDate  String?   @db.VarChar(100)
+}
+
+model tracelog_config {
+  ID             Int     @id @default(autoincrement())
+  MACHINE_ID     String? @db.VarChar(20)
+  TOOL_PATH      String? @db.VarChar(200)
+  LOG_PATH       String? @db.VarChar(200)
+  LINHA          String? @db.VarChar(20)
+  POSTO          String? @db.VarChar(20)
+  TIPO_LOG       String? @db.VarChar(20)
+  DATA_ALTERACAO String? @db.VarChar(20)
+}
+
+model tracelog_ddr_eureka {
+  SerialNumber   Int       @id @default(autoincrement())
+  EurekaSn       String?   @db.VarChar(18)
+  UserId         Int?
+  FixtureID      String?   @db.VarChar(20)
+  Line           String?   @db.VarChar(12)
+  DataIn         DateTime? @db.DateTime(0)
+  DataLog        DateTime? @db.DateTime(0)
+  MemFreq        String?   @db.VarChar(20)
+  addr_line_test String?   @db.VarChar(10)
+  data_line_test String?   @db.VarChar(10)
+  MemType        String?   @db.VarChar(12)
+}
+
+model tracelog_ddr_memtest {
+  id          Int       @id @default(autoincrement())
+  line        String    @db.VarChar(10)
+  hack        Int?
+  position    Int?
+  macNumber   String    @db.VarChar(12)
+  eqpNumber   String    @db.VarChar(30)
+  statusSlot1 String?   @db.VarChar(15)
+  statusSlot2 String?   @db.VarChar(15)
+  testId      Int?
+  createdDate DateTime  @db.DateTime(0)
+  createdUser Int
+  updateDate  DateTime? @db.DateTime(0)
+  updateUser  Int?
+  status      String?   @db.VarChar(15)
+}
+
+model tracelog_ddr_memtest_details {
+  id     Int       @id @default(autoincrement())
+  testId Int?
+  cicle  String?   @db.VarChar(10)
+  test0  String?   @db.VarChar(100)
+  test1  String?   @db.VarChar(100)
+  test2  String?   @db.VarChar(100)
+  test3  String?   @db.VarChar(100)
+  test4  String?   @db.VarChar(100)
+  test5  String?   @db.VarChar(100)
+  test6  String?   @db.VarChar(100)
+  test7  String?   @db.VarChar(100)
+  test8  String?   @db.VarChar(100)
+  test9  String?   @db.VarChar(100)
+  test10 String?   @db.VarChar(100)
+  test11 String?   @db.VarChar(100)
+  test12 String?   @db.VarChar(100)
+  test13 String?   @db.VarChar(100)
+  dataIn DateTime? @db.DateTime(0)
+}
+
+model tracelog_ddr_memtest_result {
+  id           Int     @id @default(autoincrement())
+  testId       Int?
+  currentCicle String? @db.VarChar(10)
+  mbName       String? @db.VarChar(100)
+  mbSupplier   String? @db.VarChar(100)
+  mbVersion    String? @db.VarChar(100)
+  biosSupplier String? @db.VarChar(100)
+  biosVersion  String? @db.VarChar(100)
+  biosDate     String? @db.VarChar(100)
+  memType      String? @db.VarChar(100)
+  memCapacity  String? @db.VarChar(100)
+  boardId      String? @db.VarChar(100)
+  serialNumber String? @db.VarChar(100)
+  slot         String? @db.VarChar(100)
+  testTime     String? @default("0") @db.VarChar(100)
+  dataIn       String? @db.VarChar(100)
+  dataOut      String? @db.VarChar(100)
+  status       String? @default("Init") @db.VarChar(50)
+  modulePart   String? @db.VarChar(100)
+}
+
+model tracelog_ddr_spcounter {
+  id                  Int       @id @default(autoincrement())
+  MaterialCode        String    @unique(map: "tracelog_ddr_spcounter_MaterialCode_IDX") @db.VarChar(20)
+  MaterialType        String?   @db.VarChar(20)
+  MaterialDescription String?   @db.VarChar(45)
+  DataCadastro        DateTime? @db.DateTime(0)
+  UsedCycles          Int?
+  DataLastUpdate      DateTime? @db.DateTime(0)
+  Status              String?   @db.VarChar(10)
+}
+
+model tracelog_flags {
+  id      Int    @id @default(autoincrement())
+  keyword String @unique(map: "tracelog_flags_unique") @db.VarChar(30)
+  valor   String @db.VarChar(100)
+}
+
+model tracelog_inner_control {
+  id          Int       @id @default(autoincrement())
+  InnerCode   String?   @db.VarChar(15)
+  Sku         String?   @db.VarChar(15)
+  Halb        String?   @db.VarChar(25)
+  BomCode     String?   @db.VarChar(3)
+  InnerHeight Float?    @db.Float
+  CreateDate  DateTime? @db.DateTime(0)
+  CreateUser  Int?
+  UpdateDate  DateTime? @db.DateTime(0)
+  UpdateUser  Int?
+  UpnCode     String?   @db.VarChar(50)
+  Status      String?   @db.VarChar(15)
+  Nf          String?   @db.VarChar(30)
+  Shipment    String?   @db.VarChar(15)
+}
+
+model tracelog_label_control {
+  Id           Int       @id @default(autoincrement())
+  SerialNumber String    @db.VarChar(30)
+  CreateDate   DateTime  @db.DateTime(0)
+  CreateUser   Int
+  UsedDate     DateTime? @db.DateTime(0)
+  UsedUser     Int?
+  ReprintDate  DateTime? @db.DateTime(0)
+  ReprintUser  Int?
+  Halb         String    @db.VarChar(50)
+  Status       String?   @db.VarChar(10)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tracelog_mac_consumition {
+  id                   Int                  @id @default(autoincrement())
+  serialNumber         String               @db.VarChar(50)
+  macNumber            String               @unique(map: "tracelog_mac_consumition_UN") @db.VarChar(16)
+  macDescription       String?              @db.VarChar(50)
+  dataIn               DateTime?            @default(now()) @db.DateTime(0)
+  createUser           String?              @db.VarChar(30)
+  status               String?              @default("LIVRE") @db.VarChar(20)
+  tracelog_mac_control tracelog_mac_control @relation(fields: [macNumber], references: [macNumber], onUpdate: Restrict, map: "tracelog_mac_consumition_tracelog_mac_control_FK")
+
+  @@unique([serialNumber, macNumber], map: "tracelog_mac_consumition_serialNumber_IDX")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tracelog_mac_control {
+  id                       Int                       @id @default(autoincrement())
+  modelName                String                    @db.VarChar(50)
+  macNumber                String                    @unique(map: "tracelog_tv_assembly_unique") @db.VarChar(16)
+  embarque                 String                    @db.VarChar(30)
+  softwareName             String?                   @db.VarChar(100)
+  createDate               DateTime?                 @default(now()) @db.DateTime(0)
+  createUser               String?                   @db.VarChar(30)
+  printDate                DateTime?                 @db.DateTime(0)
+  printUser                String?                   @db.VarChar(30)
+  status                   String?                   @default("Ativo") @db.VarChar(30)
+  type                     String?                   @default("Impresso") @db.VarChar(20)
+  tracelog_mac_consumition tracelog_mac_consumition?
+}
+
+model tracelog_mac_hssfail {
+  id             Int       @id @default(autoincrement())
+  serialNumber   String    @db.VarChar(50)
+  macNumber      String    @db.VarChar(16)
+  macDescription String?   @db.VarChar(50)
+  dataIn         DateTime? @default(now()) @db.DateTime(0)
+  createUser     String?   @default("99999") @db.VarChar(30)
+  Status         String?   @default("VINCULADO") @db.VarChar(20)
+}
+
+model tracelog_mac_plancontrol {
+  id      Int     @id @default(autoincrement())
+  PlanNum String  @unique(map: "tracelog_mac_plancontrol_unique") @db.VarChar(100)
+  BTMin   String? @db.VarChar(25)
+  BTMax   String? @db.VarChar(25)
+  AllNums String? @db.VarChar(25)
+}
+
+model tracelog_mtk_bt {
+  Id           Int       @id @default(autoincrement())
+  FixtureID    String?   @db.VarChar(20)
+  UserID       Int?
+  Line         String?   @db.VarChar(20)
+  StationID    String?   @db.VarChar(50)
+  Instrument   String?   @db.VarChar(100)
+  Modelo       String?   @db.Char(30)
+  SerialNumber String?   @db.VarChar(20)
+  DataIn       DateTime? @db.DateTime(0)
+  DataLog      DateTime? @db.DateTime(0)
+  ErrorLine    String?   @db.VarChar(50)
+  Status       String?   @db.VarChar(20)
+}
+
+model tracelog_mtk_mmi {
+  ID              Int       @id @default(autoincrement())
+  UserID          String    @db.VarChar(11)
+  FixtureID       String?   @db.VarChar(11)
+  Line            String?   @db.VarChar(20)
+  DataLog         DateTime? @db.DateTime(0)
+  DataIn          DateTime? @db.DateTime(0)
+  SerialNumber    String?   @db.VarChar(20)
+  Modelo          String?   @db.Char(30)
+  StationID       String?   @db.VarChar(50)
+  FailDescription String?   @db.VarChar(35)
+  Status          String?   @db.VarChar(20)
+  Barcode         String?   @db.VarChar(20)
+  SW_Version      String?   @db.VarChar(20)
+  Speaker         String?   @db.VarChar(20)
+  Headset         String?   @db.VarChar(20)
+  GPS             String?   @db.VarChar(20)
+  Touch_Panel     String?   @db.VarChar(20)
+  Main_Camera     String?   @db.VarChar(20)
+  Sub_Camera      String?   @db.VarChar(20)
+  Storage         String?   @db.VarChar(20)
+  SIM_Card        String?   @db.VarChar(20)
+  TCard           String?   @db.VarChar(20)
+  G_Sensor        String?   @db.VarChar(20)
+  BT              String?   @db.VarChar(20)
+  FM              String?   @db.VarChar(20)
+  WIFI            String?   @db.VarChar(20)
+  Vibrator        String?   @db.VarChar(20)
+
+  @@index([ID], map: "ID")
+}
+
+model tracelog_mv_equipments {
+  id                                     Int            @id @default(autoincrement())
+  code                                   String         @db.VarChar(30)
+  EquipmentName                          String         @db.VarChar(80)
+  line                                   String         @db.VarChar(10)
+  shed                                   String         @db.VarChar(20)
+  commentsMov                            String?        @db.VarChar(200)
+  status                                 String         @db.VarChar(20)
+  CreateUser                             Int
+  CreateDate                             DateTime?      @db.DateTime(0)
+  ReturnUser                             Int?
+  ReturnDate                             DateTime?      @db.DateTime(0)
+  sector                                 String         @db.VarChar(100)
+  equipment                              equipment      @relation(fields: [code], references: [serial], onUpdate: Restrict, map: "fk_tracelog_mv_equipments")
+  tracelog_users                         tracelog_users @relation(fields: [CreateUser], references: [UserID], onUpdate: Restrict, map: "fk_tracelog_mv_equipments_CreateUser")
+  shed_tracelog_mv_equipments_shedToshed shed           @relation("tracelog_mv_equipments_shedToshed", fields: [shed], references: [shed], onUpdate: Restrict, map: "fk_tracelog_mv_equipments_shed")
+
+  @@index([CreateUser], map: "CreateUser")
+  @@index([code], map: "code")
+  @@index([shed], map: "shed")
+}
+
+model tracelog_nfe_control {
+  id             Int       @id @default(autoincrement())
+  NfCode         String    @unique(map: "nf_unique") @db.VarChar(9)
+  ClientName     String    @db.VarChar(50)
+  ClientCnpj     String    @db.VarChar(20)
+  VolumnQuantity Int
+  UnityQuantity  Int
+  Shipment       String?   @unique(map: "shipment_unique") @db.VarChar(15)
+  CreateDate     DateTime? @db.DateTime(0)
+  CreateUser     String?   @db.VarChar(100)
+  UpdateDate     String?   @db.VarChar(100)
+  UpdateUser     String?   @db.VarChar(100)
+  Status         String?   @db.VarChar(15)
+}
+
+model tracelog_nfe_control_suport {
+  id             Int       @id @default(autoincrement())
+  NfCode         String    @unique(map: "nf_unique") @db.VarChar(9)
+  ClientName     String    @db.VarChar(50)
+  ClientCnpj     String    @db.VarChar(20)
+  VolumnQuantity Int
+  UnityQuantity  Int
+  Shipment       String?   @db.VarChar(15)
+  CreateDate     DateTime? @db.DateTime(0)
+  CreateUser     String?   @db.VarChar(100)
+  UpdateDate     String?   @db.VarChar(100)
+  UpdateUser     String?   @db.VarChar(100)
+  Status         String?   @db.VarChar(15)
+}
+
+model tracelog_nokia_bt {
+  Id                                Int       @id @default(autoincrement())
+  FixtureID                         String?   @db.VarChar(20)
+  UserID                            Int?
+  Line                              String?   @db.VarChar(20)
+  DataIn                            DateTime? @db.DateTime(0)
+  DataLog                           DateTime? @db.DateTime(0)
+  Status                            String?   @db.VarChar(20)
+  ErrorLine                         String?   @db.VarChar(50)
+  StationID                         String?   @db.VarChar(50)
+  Instrument                        String?   @db.VarChar(100)
+  CPVersion                         String?   @db.VarChar(100)
+  APVersion                         String?   @db.VarChar(100)
+  MemorySize                        String?   @db.VarChar(50)
+  SerialNumber                      String?   @db.VarChar(20)
+  Modelo                            String?   @db.Char(30)
+  GSM_APC_SCAN_GSM850M              Float?    @db.Float
+  GSM_APC_SCAN_EGSM900              Float?    @db.Float
+  GSM_APC_SCAN_DCS1800              Float?    @db.Float
+  GSM_APC_SCAN_PCS1900              Float?    @db.Float
+  EDGE_APC_GSM850M                  Float?    @db.Float
+  EDGE_APC_EGSM900                  Float?    @db.Float
+  EDGE_APC_DCS1800                  Float?    @db.Float
+  EDGE_APC_PCS1900                  Float?    @db.Float
+  WCDMA_MaxPower_BAND__1            Float?    @db.Float
+  WCDMA_MaxPower_BAND__5            Float?    @db.Float
+  WCDMA_MaxPower_BAND__8            Float?    @db.Float
+  LTE_APC_Line_MaxPower_Band1       Float?    @db.Float
+  LTE_APC_Line_MaxPower_Band3       Float?    @db.Float
+  LTE_APC_Line_MaxPower_Band5       Float?    @db.Float
+  LTE_APC_Line_MaxPower_Band7       Float?    @db.Float
+  LTE_APC_Line_MaxPower_Band8       Float?    @db.Float
+  LTE_APC_Line_MaxPower_Band20      Float?    @db.Float
+  LTE_APC_Line_MaxPower_Band40      Float?    @db.Float
+  LTE_APC_Line_MaxPower_Band28A     Float?    @db.Float
+  LTE_APC_Line_MaxPower_Band28B     Float?    @db.Float
+  LTE_APC_Line_MaxPower_Band41_120M Float?    @db.Float
+}
+
+model tracelog_nokia_current {
+  ID             Int       @id @default(autoincrement())
+  Linha          String?   @db.VarChar(20)
+  FixtureID      String?   @db.VarChar(20)
+  UserID         String?   @db.VarChar(20)
+  StationID      String?   @db.VarChar(30)
+  DataIn         DateTime? @db.DateTime(0)
+  DataLog        DateTime? @db.DateTime(0)
+  SerialNumber   String?   @db.VarChar(30)
+  Modelo         String?   @db.Char(30)
+  ErrorLine      String?   @db.VarChar(50)
+  Status         String?   @db.VarChar(100)
+  EnterTestMode  String?   @db.VarChar(30)
+  PowerOnCurrent String?   @db.VarChar(30)
+  ChargeCurrent  String?   @db.VarChar(30)
+  IdleCurrent    String?   @db.VarChar(30)
+  PowerOff       String?   @db.VarChar(30)
+  ExitTestMode   String?   @db.VarChar(30)
+}
+
+model tracelog_nokia_download {
+  ID              Int       @id @default(autoincrement())
+  UserID          String    @db.VarChar(30)
+  FixtureID       String?   @db.VarChar(30)
+  Linha           String?   @db.VarChar(20)
+  Data_Hora_Log   String?   @db.VarChar(20)
+  SerialNumber    String?   @db.VarChar(20)
+  Modelo          String?   @db.Char(30)
+  ToolVersion     String?   @db.VarChar(20)
+  FirmwareVersion String?   @db.VarChar(20)
+  RAM_Size        String?   @db.VarChar(30)
+  ROM_Size        String?   @db.VarChar(30)
+  BoardID         String?   @db.VarChar(30)
+  DUT_Adress      String?   @db.VarChar(30)
+  TerminalID      String?   @db.VarChar(20)
+  DataIn          DateTime? @db.DateTime(0)
+  FailDescription String?   @db.VarChar(20)
+  Status          String?   @db.VarChar(20)
+
+  @@index([ID], map: "ID")
+}
+
+model tracelog_nokia_ft {
+  ID                               Int       @id @default(autoincrement())
+  FixtureID                        String?   @db.VarChar(20)
+  UserID                           String?   @db.VarChar(20)
+  Line                             String?   @db.VarChar(20)
+  DataIn                           DateTime? @db.DateTime(0)
+  DataLog                          DateTime? @db.DateTime(0)
+  Status                           String?   @db.VarChar(100)
+  ErrorLine                        String?   @db.VarChar(100)
+  StationID                        String?   @db.VarChar(100)
+  Instrument                       String?   @db.VarChar(100)
+  Modelo                           String?   @db.VarChar(50)
+  SerialNumber                     String?   @db.VarChar(30)
+  TXP_DCS1800                      Int?
+  TXP_EGSM900                      Int?
+  TXP_GSM850M                      Int?
+  TXP_PCS1900                      Int?
+  MAXP_BAND__1                     Int?
+  MAXP_BAND__5                     Int?
+  MAXP_BAND__8                     Int?
+  LTE_MAX_POWER_Reduce_Band1       Int?
+  LTE_MAX_POWER_Reduce_Band3       Int?
+  LTE_MAX_POWER_Reduce_Band5       Int?
+  LTE_MAX_POWER_Reduce_Band7       Int?
+  LTE_MAX_POWER_Reduce_Band8       Int?
+  LTE_MAX_POWER_Reduce_Band20      Int?
+  LTE_MAX_POWER_Reduce_Band28A     Int?
+  LTE_MAX_POWER_Reduce_Band28B     Int?
+  LTE_MAX_POWER_Reduce_Band38      Int?
+  LTE_MAX_POWER_Reduce_Band40      Int?
+  LTE_MAX_POWER_Reduce_Band41_120M Int?
+}
+
+model tracelog_nokia_functional {
+  ID              Int       @id @default(autoincrement())
+  Linha           String?   @db.VarChar(20)
+  FixtureID       String?   @db.VarChar(20)
+  UserID          String?   @db.VarChar(20)
+  SerialNumber    String?   @db.VarChar(30)
+  Modelo          String?   @db.Char(30)
+  FailDescription String?   @db.VarChar(100)
+  DataIn          DateTime? @db.DateTime(0)
+  Status          String?   @db.VarChar(100)
+}
+
+model tracelog_nokia_mmi {
+  ID              Int       @id @default(autoincrement())
+  UserID          String    @db.VarChar(11)
+  FixtureID       String?   @db.VarChar(11)
+  Linha           String?   @db.VarChar(20)
+  Data_Hora_Log   DateTime? @db.DateTime(0)
+  SerialNumber    String?   @db.VarChar(20)
+  Modelo          String?   @db.Char(30)
+  BoardID         String?   @db.VarChar(20)
+  Sw_Ver          String?   @db.VarChar(20)
+  DUT_Adress      String?   @db.VarChar(11)
+  TerminalID      String?   @db.VarChar(11)
+  DataIn          DateTime? @db.DateTime(0)
+  FailDescription String?   @db.VarChar(35)
+  Calibration     String?   @db.VarChar(120)
+  BuildNumber     String?   @db.VarChar(11)
+  Accelerometer   String?   @db.VarChar(60)
+  Speaker         String?   @db.VarChar(60)
+  Headset         String?   @db.VarChar(60)
+  FrontCamera     String?   @db.VarChar(11)
+  MainCamera      String?   @db.VarChar(11)
+  Battery         String?   @db.VarChar(11)
+  SdCard          String?   @db.VarChar(11)
+  Bluetooth       String?   @db.VarChar(11)
+  Optical         String?   @db.VarChar(11)
+  FM              String?   @db.VarChar(11)
+  MainSIMCard     String?   @db.VarChar(11)
+  Wlan            String?   @db.VarChar(11)
+  GPS             String?   @db.VarChar(11)
+  DepthCamera     String?   @db.VarChar(11)
+  Proximity       String?   @db.VarChar(20)
+  VersionInfo     String?   @db.VarChar(45)
+  KeyPad          String?   @db.VarChar(20)
+  Fingerprint     String?   @db.VarChar(20)
+  Vibrator        String?   @db.VarChar(20)
+  SubSIMCard      String?   @db.VarChar(20)
+  MacroCamera     String?   @db.VarChar(20)
+  Status          String?   @db.VarChar(20)
+
+  @@index([ID], map: "ID")
+}
+
+model tracelog_notebook {
+  ID              Int       @id @default(autoincrement())
+  UserID          String?   @db.VarChar(20)
+  FixtureID       String?   @db.VarChar(20)
+  Line            String?   @db.VarChar(20)
+  dataIn          DateTime? @db.DateTime(0)
+  dataLog         DateTime? @db.DateTime(0)
+  Status          String?   @db.VarChar(30)
+  ErrorLine       String?   @db.VarChar(100)
+  SerialNumber    String?   @db.VarChar(30)
+  BiosVersion     String?   @db.VarChar(100)
+  Disk0Size       String?   @db.VarChar(30)
+  Disk1Size       String?   @db.VarChar(30)
+  MemorySize      String?   @db.VarChar(30)
+  CPUType         String?   @db.VarChar(100)
+  ModelName       String?   @db.VarChar(100)
+  ModelCode       String?   @db.VarChar(100)
+  TestTime        String?   @db.VarChar(100)
+  ResultUSB       String?   @db.VarChar(20)
+  ResultKeyboard  String?   @db.VarChar(20)
+  ResultCharger   String?   @db.VarChar(20)
+  ResultSSD       String?   @db.VarChar(20)
+  ResultLAN       String?   @db.VarChar(20)
+  ResultWifi      String?   @db.VarChar(20)
+  ResultCamera    String?   @db.VarChar(20)
+  ResultAudio     String?   @db.VarChar(20)
+  ResultHeadset   String?   @db.VarChar(20)
+  ResultBrithness String?   @db.VarChar(20)
+  ResultTela      String?   @db.VarChar(20)
+  ResultBluetooth String?   @db.VarChar(20)
+  ResultBateria   String?   @db.VarChar(20)
+  ResultLED       String?   @db.VarChar(20)
+  ResultTPad      String?   @db.VarChar(20)
+  ResultTPanel    String?   @db.VarChar(20)
+}
+
+model tracelog_oper {
+  id             Int            @id @default(autoincrement())
+  Oper           String         @db.VarChar(20)
+  Description    String?        @db.VarChar(100)
+  Family         String?        @db.VarChar(100)
+  CreationUser   Int
+  CreationDate   DateTime       @db.DateTime(0)
+  tracelog_users tracelog_users @relation(fields: [CreationUser], references: [UserID], onUpdate: Restrict, map: "USER_KEY")
+
+  @@unique([Family, Oper], map: "OPER_FAMILY_UNIQUE_KEY")
+  @@index([CreationUser], map: "USER_KEY")
+}
+
+model tracelog_pth_keyence_boards {
+  id                               Int                                @id @default(autoincrement())
+  programa                         String?                            @db.VarChar(30)
+  linha                            String?                            @db.VarChar(10)
+  sn                               String?                            @db.VarChar(30)
+  result                           String?                            @db.VarChar(10)
+  dataIn                           DateTime?                          @default(now()) @db.DateTime(0)
+  tracelog_pth_keyence_componentes tracelog_pth_keyence_componentes[]
+}
+
+model tracelog_pth_keyence_componentes {
+  id                          Int                          @id @default(autoincrement())
+  idBoards                    Int?
+  posMec                      String?                      @db.VarChar(30)
+  resultado                   String?                      @db.VarChar(30)
+  dataIn                      DateTime?                    @default(now()) @db.DateTime(0)
+  tracelog_pth_keyence_boards tracelog_pth_keyence_boards? @relation(fields: [idBoards], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "tracelog_pth_keyence_componentes_tracelog_pth_keyence_boards_FK")
+
+  @@index([id], map: "ix_tracelog_pth_keyence_componentes_id")
+  @@index([idBoards], map: "tracelog_pth_keyence_componentes_tracelog_pth_keyence_boards_FK")
+}
+
+model tracelog_rate {
+  id                                                        Int             @id @default(autoincrement())
+  Line                                                      String          @db.VarChar(5)
+  ModelId                                                   Int
+  Rate                                                      Int
+  DataIn                                                    DateTime        @db.DateTime(0)
+  CreateUserId                                              Int
+  DataUpdate                                                DateTime?       @db.DateTime(0)
+  UpdateUserId                                              Int?
+  packing_modelo                                            packing_modelo  @relation(fields: [ModelId], references: [ID], onUpdate: Restrict, map: "tracelog_rate_packing_modelo_FK")
+  tracelog_users_tracelog_rate_CreateUserIdTotracelog_users tracelog_users  @relation("tracelog_rate_CreateUserIdTotracelog_users", fields: [CreateUserId], references: [UserID], onUpdate: Restrict, map: "tracelog_rate_tracelog_users_FK")
+  tracelog_users_tracelog_rate_UpdateUserIdTotracelog_users tracelog_users? @relation("tracelog_rate_UpdateUserIdTotracelog_users", fields: [UpdateUserId], references: [UserID], onDelete: Restrict, onUpdate: Restrict, map: "tracelog_rate_tracelog_users_FK_1")
+
+  @@unique([Line, ModelId, Rate], map: "tracelog_rate_Line_IDX")
+  @@index([ModelId], map: "tracelog_rate_packing_modelo_FK")
+  @@index([CreateUserId], map: "tracelog_rate_tracelog_users_FK")
+  @@index([UpdateUserId], map: "tracelog_rate_tracelog_users_FK_1")
+}
+
+model tracelog_setup_thermal_paste {
+  id              Int       @id @default(autoincrement())
+  TubeSerial      String    @db.VarChar(30)
+  FullTubeWeight  Float     @db.Float
+  EmptyTubeWeight Float     @db.Float
+  QtdTarget       Int
+  QtdProduced     Int?
+  SetupDate       DateTime  @db.DateTime(0)
+  ChangeDate      DateTime? @db.DateTime(0)
+  SetupUser       Int
+  ChangeUser      Int?
+  Model           String    @db.VarChar(20)
+  Line            String    @db.VarChar(10)
+}
+
+model tracelog_smt_aoi_register {
+  id                    Int       @id @default(autoincrement())
+  g_machine_serial      String?   @db.VarChar(20)
+  g_line_name           String?   @db.VarChar(20)
+  g_group_name          String?   @db.VarChar(30)
+  g_board_name          String?   @db.VarChar(40)
+  g_auto_start_datetime String?   @db.VarChar(30)
+  b_side                String?   @db.VarChar(2)
+  b_board_serial        String?   @db.VarChar(30)
+  b_inspected_datetime  DateTime? @db.DateTime(0)
+  b_operator            String?   @db.VarChar(20)
+  b_result              String?   @db.VarChar(10)
+  b_AOI_result          String?   @db.VarChar(5)
+  b_operator_Judgment   String?   @db.VarChar(5)
+  b_lotnumber           String?   @db.VarChar(20)
+  b_racknumber          String?   @db.VarChar(20)
+  b_rackcount           String?   @db.VarChar(20)
+  b_currentcount        String?   @db.VarChar(20)
+  b_ngcount             String?   @db.VarChar(20)
+  c_reference_name      String?   @db.VarChar(20)
+  c_macro_name          String?   @db.VarChar(30)
+  c_libname             String?   @db.VarChar(30)
+  c_subboard_number     String?   @db.VarChar(3)
+  c_side                String?   @db.VarChar(2)
+  c_result              String?   @db.VarChar(10)
+  c_AOI_result          String?   @db.VarChar(10)
+  c_operator_Judgment   String?   @db.VarChar(10)
+  c_flg                 String?   @db.VarChar(10)
+  c_x                   String?   @db.VarChar(10)
+  c_y                   String?   @db.VarChar(10)
+  c_ShiftX              String?   @db.VarChar(30)
+  c_ShiftY              String?   @db.VarChar(30)
+  c_ShiftT              String?   @db.VarChar(20)
+  w_window_num          String?   @db.VarChar(10)
+  w_pin_num             String?   @db.VarChar(5)
+  w_subpin_num          String?   @db.VarChar(10)
+  w_result              String?   @db.VarChar(10)
+  w_AOI_result          String?   @db.VarChar(10)
+  w_operator_Judgment   String?   @db.VarChar(10)
+  w_ng_kind             String?   @db.VarChar(30)
+  w_ng_name             String?   @db.VarChar(40)
+  w_image               String?   @db.VarChar(20)
+  w_x1                  String?   @db.VarChar(10)
+  w_y1                  String?   @db.VarChar(10)
+  w_x2                  String?   @db.VarChar(10)
+  w_y2                  String?   @db.VarChar(10)
+  w_shiftx              String?   @db.VarChar(10)
+  w_shifty              String?   @db.VarChar(10)
+  w_light               String?   @db.VarChar(10)
+  w_algnum              String?   @db.VarChar(20)
+  w_algname             String?   @db.VarChar(20)
+  w_max                 String?   @db.VarChar(10)
+  w_min                 String?   @db.VarChar(10)
+  w_sample              String?   @db.VarChar(10)
+  w_sample2             String?   @db.VarChar(10)
+  w_sample3             String?   @db.VarChar(10)
+  w_sample4             String?   @db.VarChar(10)
+  w_ocr_result          String?   @db.VarChar(10)
+  status                String    @db.VarChar(20)
+}
+
+model tracelog_smt_aoi_result {
+  id       Int       @id @default(autoincrement())
+  lotId    String?   @db.VarChar(50)
+  Status   String?   @db.VarChar(50)
+  dataRead DateTime? @db.DateTime(0)
+}
+
+model tracelog_smt_spi_register_fail {
+  id           Int     @id @default(autoincrement())
+  Component_ID String? @db.VarChar(50)
+  PadID        String? @db.VarChar(50)
+  Volume       String? @db.VarChar(50)
+  Height       String? @db.VarChar(50)
+  Area         String? @db.VarChar(50)
+  OffsetX      String? @db.VarChar(50)
+  OffsetY      String? @db.VarChar(50)
+  Barcode      String? @db.VarChar(50)
+  Job          String? @db.VarChar(500)
+  Result       String? @db.VarChar(50)
+}
+
+model tracelog_smt_spi_result {
+  id       Int       @id @default(autoincrement())
+  lotId    String?   @db.VarChar(50)
+  Status   String?   @db.VarChar(50)
+  dataRead DateTime? @db.DateTime(0)
+}
+
+model tracelog_sn_brc_basys {
+  id     Int      @id @default(autoincrement())
+  smtSn  String   @unique(map: "smtSn_UNIQUE") @db.VarChar(20)
+  pcbaSn String   @unique(map: "pcbaSn_UNIQUE") @db.VarChar(20)
+  dataIn DateTime @default(now()) @db.DateTime(0)
+  userId Int
+  status String?  @db.VarChar(12)
+}
+
+model tracelog_ssd_ddr_relationship {
+  id               Int            @id @default(autoincrement())
+  BomCode          String         @db.VarChar(5)
+  Halb             String         @db.VarChar(50)
+  Sku              String         @db.VarChar(50)
+  PackingType      String         @default("Individual") @db.VarChar(15)
+  ModelDescription String?        @db.VarChar(50)
+  PartNumber       String?        @db.VarChar(50)
+  PrintLineInfo    String?        @default("ANULARB5 A GARANTIA SE REMOVIDO") @db.VarChar(40)
+  FirmwareVersion  String?        @db.VarChar(100)
+  Capacity         Float?         @db.Float
+  Po               String?        @db.VarChar(10)
+  status           String         @db.VarChar(20)
+  packing_modelo   packing_modelo @relation(fields: [Sku], references: [Cod_sap], onUpdate: Restrict, map: "tracelog_ssd_ddr_relationship_packing_modelo_FK")
+
+  @@unique([BomCode, Halb, Sku], map: "tracelog_ssd_ddr_relationship_BomCode_IDX")
+  @@index([Sku], map: "tracelog_ssd_ddr_relationship_packing_modelo_FK")
+}
+
+model tracelog_ssd_sncontrol {
+  id              Int?             @default(autoincrement())
+  SerialNumber    String           @unique(map: "tracelog_ssd_sncontrol_SerialNumber_IDX") @db.VarChar(15)
+  DataIn          DateTime?        @db.DateTime(0)
+  DataPrint       DateTime?        @db.DateTime(0)
+  DataFail        DateTime?        @db.DateTime(0)
+  Status          Int?
+  tracelog_status tracelog_status? @relation(fields: [Status], references: [StatusID], onDelete: Restrict, onUpdate: Restrict, map: "tracelog_ssd_sncontrol_FK")
+
+  @@index([Status], map: "tracelog_ssd_sncontrol_FK")
+  @@index([id], map: "tracelog_ssd_sncontrol_id_IDX")
+}
+
+model tracelog_status {
+  StatusID                                          Int                       @id
+  Description                                       String                    @db.VarChar(45)
+  tracelog_ssd_sncontrol                            tracelog_ssd_sncontrol[]
+  tracelog_tv_pa_tracelog_tv_pa_T1Totracelog_status tracelog_tv_pa[]          @relation("tracelog_tv_pa_T1Totracelog_status")
+  tracelog_tv_pa_tracelog_tv_pa_T2Totracelog_status tracelog_tv_pa[]          @relation("tracelog_tv_pa_T2Totracelog_status")
+  tracelog_tv_pa_tracelog_tv_pa_T3Totracelog_status tracelog_tv_pa[]          @relation("tracelog_tv_pa_T3Totracelog_status")
+  tracelog_tv_pa_tracelog_tv_pa_T4Totracelog_status tracelog_tv_pa[]          @relation("tracelog_tv_pa_T4Totracelog_status")
+  tracelog_tv_pa_tracelog_tv_pa_T5Totracelog_status tracelog_tv_pa[]          @relation("tracelog_tv_pa_T5Totracelog_status")
+  tracelog_tv_pa_tracelog_tv_pa_T6Totracelog_status tracelog_tv_pa[]          @relation("tracelog_tv_pa_T6Totracelog_status")
+  tracelog_zte_aging_car                            tracelog_zte_aging_car[]
+  tracelog_zte_aging_test                           tracelog_zte_aging_test[]
+}
+
+model tracelog_test_result {
+  id           Int       @id @default(autoincrement())
+  SerialNumber String?   @db.VarChar(20)
+  TestType     String?   @db.VarChar(20)
+  StationID    String?   @db.VarChar(20)
+  TestResult   String?   @db.VarChar(20)
+  UserID       Int?
+  CreateDate   DateTime? @db.DateTime(0)
+  Model        String?   @db.VarChar(20)
+  Line         String?   @db.VarChar(10)
+
+  @@index([SerialNumber, TestType, TestResult], map: "SearchingByTestKey")
+}
+
+model tracelog_timestamp {
+  keyWord    String    @id @db.VarChar(20)
+  lastUpdate DateTime? @db.DateTime(0)
+}
+
+model tracelog_tool_control {
+  id                    Int              @id @default(autoincrement())
+  swToolName            String           @db.VarChar(100)
+  productionOrder       String           @db.VarChar(100)
+  description           String           @db.VarChar(100)
+  swPath                String           @db.VarChar(300)
+  scriptPath            String           @db.VarChar(300)
+  scriptName            String           @db.VarChar(100)
+  scriptInfo            String           @db.VarChar(100)
+  scriptInfoDescription String           @db.VarChar(100)
+  createDate            DateTime         @db.DateTime(0)
+  createUser            Int
+  updateDate            DateTime?        @db.DateTime(0)
+  updateUser            Int?
+  Status                String?          @db.VarChar(50)
+  packing_embarque      packing_embarque @relation(fields: [productionOrder], references: [Processo], onUpdate: Restrict, map: "tracelog_tool_control_FK")
+
+  @@index([productionOrder], map: "tracelog_tool_control_FK")
+}
+
+model tracelog_tv_assembly {
+  id             Int            @id @default(autoincrement())
+  productSn      String?        @unique(map: "tracelog_tv_assembly_unique_1") @db.VarChar(50)
+  idPcba         String?        @unique(map: "tracelog_tv_assembly_unique") @db.VarChar(50)
+  idPanel        String         @db.VarChar(100)
+  wifiModule     String?        @db.VarChar(50)
+  wifiDesc       String?        @db.VarChar(100)
+  module1        String?        @db.VarChar(50)
+  modDesc1       String?        @db.VarChar(100)
+  module2        String?        @db.VarChar(50)
+  modDesc2       String?        @db.VarChar(100)
+  dataIn         DateTime?      @default(now()) @db.DateTime(0)
+  userId         Int
+  updateDate     DateTime?      @db.DateTime(0)
+  updateUser     Int?
+  status         String         @default("VINCULADO") @db.VarChar(30)
+  model          Int
+  line           String?        @db.VarChar(10)
+  packing_modelo packing_modelo @relation(fields: [model], references: [ID], onUpdate: Restrict, map: "tracelog_tv_assembly_FK")
+
+  @@index([model], map: "tracelog_tv_assembly_FK")
+  @@index([wifiModule], map: "tracelog_tv_assembly_module1_IDX")
+}
+
+model tracelog_tv_assembly_suport {
+  id         Int       @id @default(autoincrement())
+  productSn  String?   @db.VarChar(50)
+  idPcba     String?   @db.VarChar(50)
+  idPanel    String    @db.VarChar(100)
+  wifiModule String?   @db.VarChar(50)
+  wifiDesc   String?   @db.VarChar(100)
+  module1    String?   @db.VarChar(50)
+  modDesc1   String?   @db.VarChar(100)
+  module2    String?   @db.VarChar(50)
+  modDesc2   String?   @db.VarChar(100)
+  dataIn     DateTime? @default(now()) @db.DateTime(0)
+  userId     Int
+  updateDate DateTime? @db.DateTime(0)
+  updateUser Int?
+  status     String    @default("VINCULADO") @db.VarChar(30)
+  model      Int
+  line       String?   @db.VarChar(10)
+}
+
+model tracelog_tv_box_history {
+  id                 Int                @id @default(autoincrement())
+  boxSn              String             @unique(map: "tracelog_tv_box_history_UN") @db.VarChar(20)
+  boxWeight          Float              @db.Float
+  idProduct          Int
+  tracelog_tv_models tracelog_tv_models @relation(fields: [idProduct], references: [id], onUpdate: Restrict, map: "tracelog_tv_box_history_FK")
+
+  @@index([idProduct], map: "tracelog_tv_box_history_FK")
+}
+
+model tracelog_tv_fail {
+  id           Int      @id @default(autoincrement())
+  SerialNumber String   @db.VarChar(20)
+  test         String   @db.VarChar(10)
+  dataOut      DateTime @db.DateTime(0)
+}
+
+model tracelog_tv_itemlist {
+  id             Int            @id @default(autoincrement())
+  keyItem        String         @db.VarChar(30)
+  keyDescription String?        @db.VarChar(100)
+  operSeq        Int?
+  regexModel     String         @db.VarChar(50)
+  procStep       String         @default("Items") @db.VarChar(30)
+  idModel        Int
+  createUser     Int?
+  createDate     DateTime?      @default(now()) @db.DateTime(0)
+  status         String?        @default("ATIVO") @db.VarChar(30)
+  packing_modelo packing_modelo @relation(fields: [idModel], references: [ID], onUpdate: Restrict, map: "tracelog_tv_itemlist_FK")
+
+  @@unique([idModel, operSeq, procStep], map: "tracelog_tv_itemlist_idModel_IDX")
+}
+
+model tracelog_tv_items {
+  id             Int    @id @default(autoincrement())
+  keyItem        String @db.VarChar(10)
+  keyDescription String @db.VarChar(50)
+}
+
+model tracelog_tv_models {
+  id                      Int                       @unique(map: "id") @default(autoincrement())
+  modelSapCode            String                    @id @db.VarChar(50)
+  modelSku                String                    @unique(map: "tracelog_tv_models_UN") @db.VarChar(30)
+  maxWeight               Float                     @default(500) @db.Float
+  minWeight               Float                     @default(470) @db.Float
+  tolerance               Float                     @default(0) @db.Float
+  wifiType                String?                   @default("INTEGRATED") @db.VarChar(30)
+  createUser              Int?
+  createDate              DateTime?                 @default(now()) @db.DateTime(0)
+  status                  String?                   @default("ATIVO") @db.VarChar(30)
+  tracelog_tv_box_history tracelog_tv_box_history[]
+}
+
+model tracelog_tv_pa {
+  id                                                 Int             @id @default(autoincrement())
+  SerialNumber                                       String?         @unique(map: "sn_key") @db.VarChar(20)
+  Hipot                                              Int             @default(0)
+  T1                                                 Int             @default(0)
+  T2                                                 Int             @default(0)
+  T3                                                 Int             @default(0)
+  T4                                                 Int             @default(0)
+  T5                                                 Int             @default(0)
+  T6                                                 Int             @default(0)
+  UserHipot                                          Int
+  UserRevision                                       Int?
+  dataIn                                             DateTime        @db.DateTime(0)
+  dataOut                                            DateTime?       @db.DateTime(0)
+  tracelog_status_tracelog_tv_pa_T1Totracelog_status tracelog_status @relation("tracelog_tv_pa_T1Totracelog_status", fields: [T1], references: [StatusID], onUpdate: Restrict, map: "tracelog_tv_pa_FK")
+  tracelog_status_tracelog_tv_pa_T2Totracelog_status tracelog_status @relation("tracelog_tv_pa_T2Totracelog_status", fields: [T2], references: [StatusID], onUpdate: Restrict, map: "tracelog_tv_pa_FK_1")
+  tracelog_status_tracelog_tv_pa_T3Totracelog_status tracelog_status @relation("tracelog_tv_pa_T3Totracelog_status", fields: [T3], references: [StatusID], onUpdate: Restrict, map: "tracelog_tv_pa_FK_2")
+  tracelog_status_tracelog_tv_pa_T4Totracelog_status tracelog_status @relation("tracelog_tv_pa_T4Totracelog_status", fields: [T4], references: [StatusID], onUpdate: Restrict, map: "tracelog_tv_pa_FK_3")
+  tracelog_status_tracelog_tv_pa_T5Totracelog_status tracelog_status @relation("tracelog_tv_pa_T5Totracelog_status", fields: [T5], references: [StatusID], onUpdate: Restrict, map: "tracelog_tv_pa_FK_4")
+  tracelog_status_tracelog_tv_pa_T6Totracelog_status tracelog_status @relation("tracelog_tv_pa_T6Totracelog_status", fields: [T6], references: [StatusID], onUpdate: Restrict, map: "tracelog_tv_pa_FK_5")
+
+  @@index([T1], map: "tracelog_tv_pa_FK")
+  @@index([T2], map: "tracelog_tv_pa_FK_1")
+  @@index([T3], map: "tracelog_tv_pa_FK_2")
+  @@index([T4], map: "tracelog_tv_pa_FK_3")
+  @@index([T5], map: "tracelog_tv_pa_FK_4")
+  @@index([T6], map: "tracelog_tv_pa_FK_5")
+}
+
+model tracelog_tv_packing {
+  id            Int       @id @default(autoincrement())
+  idBox         Int?
+  SerialNumber  String?   @unique(map: "SerialNumber") @db.VarChar(30)
+  weightPacking Float     @db.Float
+  idItems       Int?
+  zplSap        String?   @db.Text
+  DataIn        DateTime? @db.DateTime(0)
+  UserID        Int?
+  Model         String?   @db.VarChar(20)
+  line          String?   @db.VarChar(10)
+
+  @@index([DataIn, Model, line], map: "tracelog_tv_packing_DataIn_IDX")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tracelog_tv_pkacessorio {
+  id           Int       @id @default(autoincrement())
+  SerialNumber String    @db.VarChar(30)
+  acessorio1   String?   @db.VarChar(100)
+  acessorio2   String?   @db.VarChar(100)
+  acessorio3   String?   @db.VarChar(100)
+  acessorio4   String?   @db.VarChar(100)
+  acessorio5   String?   @db.VarChar(100)
+  acessorio6   String?   @db.VarChar(100)
+  acessorio7   String?   @db.VarChar(100)
+  acessorio8   String?   @db.VarChar(100)
+  acessorio9   String?   @db.VarChar(100)
+  acessorio10  String?   @db.VarChar(100)
+  status       String?   @default("ABERTO") @db.VarChar(30)
+  UserID       Int?
+  dataIn       DateTime? @default(now()) @db.DateTime(0)
+  model        String?   @db.VarChar(50)
+  line         String?   @db.VarChar(10)
+}
+
+model tracelog_tv_pth {
+  id                 Int                @id @default(autoincrement())
+  Line               String?            @db.VarChar(20)
+  UserID             String?            @db.VarChar(11)
+  Modelo             String?            @db.VarChar(50)
+  SerialNumber       String             @db.VarChar(20)
+  DataIn             DateTime?          @db.DateTime(0)
+  FailCode           String?            @db.VarChar(100)
+  Status             String?            @db.VarChar(20)
+  TouchUp            String?            @db.VarChar(10)
+  Component          String?            @db.VarChar(30)
+  tracelog_tv_pth_sn tracelog_tv_pth_sn @relation(fields: [SerialNumber], references: [SerialNumber], onDelete: NoAction, onUpdate: NoAction, map: "FK_SerialPTHtv")
+
+  @@index([SerialNumber], map: "FK_SerialPTH_idx")
+}
+
+model tracelog_tv_pth_sn {
+  id              Int               @unique(map: "id_UNIQUE") @default(autoincrement())
+  Line            String?           @db.VarChar(20)
+  UserID          String?           @db.VarChar(11)
+  Modelo          String?           @db.VarChar(50)
+  SerialNumber    String            @id @db.VarChar(20)
+  DataIn          DateTime?         @db.DateTime(0)
+  Status          String?           @db.VarChar(20)
+  TouchUp         String?           @default("No") @db.VarChar(10)
+  DataFail        DateTime?         @default(now()) @db.DateTime(0)
+  tracelog_tv_pth tracelog_tv_pth[]
+}
+
+model tracelog_tv_rc_mac_history {
+  id           Int      @id @default(autoincrement())
+  mac          String   @db.VarChar(17)
+  DataIn       DateTime @db.DateTime(0)
+  UserID       Int
+  Status       String?  @default("Pass") @db.VarChar(4)
+  SerialNumber String   @db.VarChar(30)
+}
+
+model tracelog_tv_rc_mac_rework {
+  id           Int       @id @default(autoincrement())
+  mac          String    @unique(map: "mac") @db.VarChar(17)
+  UserID       Int
+  DataIn       DateTime  @db.DateTime(0)
+  DataFail     DateTime? @db.DateTime(0)
+  UserFail     Int?
+  Status       String?   @default("Pass") @db.VarChar(4)
+  SerialNumber String    @unique(map: "tracelog_tv_rc_mac_rework_UN") @db.VarChar(30)
+}
+
+model tracelog_tv_setup {
+  id             Int             @id @default(autoincrement())
+  Line           String          @unique(map: "tracelog_tv_setup_UN") @db.VarChar(5)
+  Model          String?         @db.VarChar(50)
+  CurrentOp      String?         @db.VarChar(20)
+  OpTarget       Int?
+  OpProduced     Int?
+  Reset          Boolean?        @default(false)
+  Assembly       Boolean?        @default(false)
+  packing_modelo packing_modelo? @relation(fields: [Model], references: [Cod_sap], onDelete: Restrict, onUpdate: Restrict, map: "tracelog_tv_setup_FK")
+  packing_linha  packing_linha   @relation(fields: [Line], references: [LinhaID], onUpdate: Restrict, map: "tracelog_tv_setup_FK_1")
+
+  @@index([Model], map: "tracelog_tv_setup_FK")
+}
+
+model tracelog_tv_setup_report {
+  id         Int       @id @default(autoincrement())
+  Line       String    @db.VarChar(100)
+  Model      String    @db.VarChar(100)
+  CurrentOp  Int
+  OpTarget   Int
+  OpProduced String    @db.VarChar(100)
+  Flag       String    @db.VarChar(100)
+  Report     String    @db.Text
+  UserCreate Int
+  DateCreate DateTime  @db.DateTime(0)
+  UserUpdate Int?
+  DateUpdate DateTime? @db.DateTime(0)
+
+  @@index([Line], map: "Line")
+}
+
+model tracelog_tv_user {
+  id         Int       @id @default(autoincrement())
+  UserId     Int
+  dataLogin  DateTime  @db.DateTime(0)
+  dataLogout DateTime? @db.DateTime(0)
+  Test       String    @db.VarChar(5)
+}
+
+model tracelog_tv_writemac_register {
+  id           Int       @id @default(autoincrement())
+  model        String?   @db.VarChar(40)
+  lineId       String?   @db.VarChar(10)
+  machineName  String?   @db.VarChar(60)
+  serialNumber String?   @db.VarChar(30)
+  macNumber    String?   @db.VarChar(20)
+  hdcpKey1     String?   @db.VarChar(100)
+  hdcpKey2     String?   @db.VarChar(100)
+  dataLog      DateTime? @db.DateTime(0)
+  dataIn       DateTime? @default(now()) @db.DateTime(0)
+  userId       Int?
+}
+
+model tracelog_upn_control {
+  id            Int       @id @default(autoincrement())
+  UpnCode       String    @unique(map: "upn_key") @db.VarChar(50)
+  MasterBoxCode String?   @db.VarChar(50)
+  Sku           String    @db.VarChar(20)
+  Halb          String    @db.VarChar(25)
+  BomCode       String    @db.VarChar(3)
+  CreateDate    DateTime  @db.DateTime(0)
+  CreateUser    Int
+  UpdateDate    DateTime? @db.DateTime(0)
+  UpdateUser    Int?
+  Status        String    @db.VarChar(15)
+}
+
+model tracelog_users {
+  ID                                                             Int                      @id @default(autoincrement())
+  UserID                                                         Int                      @unique(map: "UserID")
+  CompleteName                                                   String?                  @db.VarChar(100)
+  AccessPassword                                                 String?                  @db.VarChar(50)
+  AccessLevel                                                    String?                  @db.VarChar(20)
+  email                                                          String?                  @db.VarChar(255)
+  Status                                                         String                   @default("") @db.VarChar(20)
+  sector                                                         String                   @db.VarChar(25)
+  hierarchy                                                      String?                  @db.VarChar(50)
+  profile                                                        String?                  @db.Text
+  isOnline                                                       String?                  @db.VarChar(10)
+  dateLogin                                                      DateTime?                @db.DateTime(0)
+  UserCad                                                        Int?
+  DateCad                                                        DateTime?                @db.DateTime(0)
+  userUpdate                                                     Int?
+  dateUpdate                                                     DateTime?                @db.DateTime(0)
+  factory                                                        String?                  @db.VarChar(20)
+  locality                                                       String?                  @db.VarChar(20)
+  equipments_process_equipments_process_user_cadTotracelog_users equipments_process[]     @relation("equipments_process_user_cadTotracelog_users")
+  equipments_process_equipments_process_user_upTotracelog_users  equipments_process[]     @relation("equipments_process_user_upTotracelog_users")
+  ns_check_ddr                                                   ns_check_ddr[]
+  tracelog_mv_equipments                                         tracelog_mv_equipments[]
+  tracelog_oper                                                  tracelog_oper[]
+  tracelog_rate_tracelog_rate_CreateUserIdTotracelog_users       tracelog_rate[]          @relation("tracelog_rate_CreateUserIdTotracelog_users")
+  tracelog_rate_tracelog_rate_UpdateUserIdTotracelog_users       tracelog_rate[]          @relation("tracelog_rate_UpdateUserIdTotracelog_users")
+
+  @@index([UserID, CompleteName, AccessPassword], map: "tracelog_users_UserID_IDX")
+}
+
+model tracelog_wifi_result {
+  id              Int      @id @default(autoincrement())
+  macReference    String   @db.VarChar(30)
+  mac             String   @db.VarChar(12)
+  result          String   @db.VarChar(10)
+  error           String?  @default("None") @db.VarChar(100)
+  binary          Bytes?   @db.Blob
+  dataIn          DateTime @db.DateTime(0)
+  userId          Int
+  productionOrder String?  @db.VarChar(20)
+  machineId       String?  @db.VarChar(50)
+  lineId          String?  @default("LT002") @db.VarChar(10)
+  test            String?  @db.VarChar(50)
+
+  @@index([dataIn], map: "tracelog_wifi_result_dataIn_IDX")
+  @@index([macReference], map: "tracelog_wifi_result_macReference_IDX")
+}
+
+model tracelog_zte {
+  Id           Int       @id @default(autoincrement())
+  Line         String?   @db.VarChar(20)
+  FixtureID    String?   @db.VarChar(20)
+  UserID       Int?
+  TestType     String?   @db.VarChar(100)
+  StationID    String?   @db.VarChar(50)
+  SerialNumber String?   @db.VarChar(20)
+  Modelo       String?   @db.VarChar(50)
+  DataIn       DateTime? @db.DateTime(0)
+  DataLog      DateTime? @db.DateTime(0)
+  ErrorLine    String?   @db.VarChar(100)
+  Status       String?   @db.VarChar(20)
+
+  @@index([DataLog, StationID, Status], map: "tracelog_zte_DataLog_IDX")
+  @@index([SerialNumber], map: "tracelog_zte_SerialNumber_IDX")
+}
+
+model tracelog_zte_aging_car {
+  CarID                   Int                       @id
+  CarDescription          String?                   @db.VarChar(45)
+  A1                      String?                   @default("0") @db.VarChar(12)
+  A2                      String?                   @default("0") @db.VarChar(12)
+  A3                      String?                   @default("0") @db.VarChar(12)
+  A4                      String?                   @default("0") @db.VarChar(12)
+  A5                      String?                   @default("0") @db.VarChar(12)
+  A6                      String?                   @default("0") @db.VarChar(12)
+  A7                      String?                   @default("0") @db.VarChar(12)
+  A8                      String?                   @default("0") @db.VarChar(12)
+  A9                      String?                   @default("0") @db.VarChar(12)
+  A10                     String?                   @default("0") @db.VarChar(12)
+  A11                     String?                   @default("0") @db.VarChar(12)
+  A12                     String?                   @default("0") @db.VarChar(12)
+  B1                      String?                   @default("0") @db.VarChar(12)
+  B2                      String?                   @default("0") @db.VarChar(12)
+  B3                      String?                   @default("0") @db.VarChar(12)
+  B4                      String?                   @default("0") @db.VarChar(12)
+  B5                      String?                   @default("0") @db.VarChar(12)
+  B6                      String?                   @default("0") @db.VarChar(12)
+  B7                      String?                   @default("0") @db.VarChar(12)
+  B8                      String?                   @default("0") @db.VarChar(12)
+  B9                      String?                   @default("0") @db.VarChar(12)
+  B10                     String?                   @default("0") @db.VarChar(12)
+  B11                     String?                   @default("0") @db.VarChar(12)
+  B12                     String?                   @default("0") @db.VarChar(12)
+  C1                      String?                   @default("0") @db.VarChar(12)
+  C2                      String?                   @default("0") @db.VarChar(12)
+  C3                      String?                   @default("0") @db.VarChar(12)
+  C4                      String?                   @default("0") @db.VarChar(12)
+  C5                      String?                   @default("0") @db.VarChar(12)
+  C6                      String?                   @default("0") @db.VarChar(12)
+  C7                      String?                   @default("0") @db.VarChar(12)
+  C8                      String?                   @default("0") @db.VarChar(12)
+  C9                      String?                   @default("0") @db.VarChar(12)
+  C10                     String?                   @default("0") @db.VarChar(12)
+  C11                     String?                   @default("0") @db.VarChar(12)
+  C12                     String?                   @default("0") @db.VarChar(12)
+  D1                      String?                   @default("0") @db.VarChar(12)
+  D2                      String?                   @default("0") @db.VarChar(12)
+  D3                      String?                   @default("0") @db.VarChar(12)
+  D4                      String?                   @default("0") @db.VarChar(12)
+  D5                      String?                   @default("0") @db.VarChar(12)
+  D6                      String?                   @default("0") @db.VarChar(12)
+  D7                      String?                   @default("0") @db.VarChar(12)
+  D8                      String?                   @default("0") @db.VarChar(12)
+  D9                      String?                   @default("0") @db.VarChar(12)
+  D10                     String?                   @default("0") @db.VarChar(12)
+  D11                     String?                   @default("0") @db.VarChar(12)
+  D12                     String?                   @default("0") @db.VarChar(12)
+  E1                      String?                   @default("0") @db.VarChar(12)
+  E2                      String?                   @default("0") @db.VarChar(12)
+  E3                      String?                   @default("0") @db.VarChar(12)
+  E4                      String?                   @default("0") @db.VarChar(12)
+  E5                      String?                   @default("0") @db.VarChar(12)
+  E6                      String?                   @default("0") @db.VarChar(12)
+  E7                      String?                   @default("0") @db.VarChar(12)
+  E8                      String?                   @default("0") @db.VarChar(12)
+  E9                      String?                   @default("0") @db.VarChar(12)
+  E10                     String?                   @default("0") @db.VarChar(12)
+  E11                     String?                   @default("0") @db.VarChar(12)
+  E12                     String?                   @default("0") @db.VarChar(12)
+  F1                      String?                   @default("0") @db.VarChar(12)
+  F2                      String?                   @default("0") @db.VarChar(12)
+  F3                      String?                   @default("0") @db.VarChar(12)
+  F4                      String?                   @default("0") @db.VarChar(12)
+  F5                      String?                   @default("0") @db.VarChar(12)
+  F6                      String?                   @default("0") @db.VarChar(12)
+  F7                      String?                   @default("0") @db.VarChar(12)
+  F8                      String?                   @default("0") @db.VarChar(12)
+  F9                      String?                   @default("0") @db.VarChar(12)
+  F10                     String?                   @default("0") @db.VarChar(12)
+  F11                     String?                   @default("0") @db.VarChar(12)
+  F12                     String?                   @default("0") @db.VarChar(12)
+  G1                      String?                   @default("0") @db.VarChar(12)
+  G2                      String?                   @default("0") @db.VarChar(12)
+  G3                      String?                   @default("0") @db.VarChar(12)
+  G4                      String?                   @default("0") @db.VarChar(12)
+  G5                      String?                   @default("0") @db.VarChar(12)
+  G6                      String?                   @default("0") @db.VarChar(12)
+  G7                      String?                   @default("0") @db.VarChar(12)
+  G8                      String?                   @default("0") @db.VarChar(12)
+  G9                      String?                   @default("0") @db.VarChar(12)
+  G10                     String?                   @default("0") @db.VarChar(12)
+  G11                     String?                   @default("0") @db.VarChar(12)
+  G12                     String?                   @default("0") @db.VarChar(12)
+  H1                      String?                   @default("0") @db.VarChar(12)
+  H2                      String?                   @default("0") @db.VarChar(12)
+  H3                      String?                   @default("0") @db.VarChar(12)
+  H4                      String?                   @default("0") @db.VarChar(12)
+  H5                      String?                   @default("0") @db.VarChar(12)
+  H6                      String?                   @default("0") @db.VarChar(12)
+  H7                      String?                   @default("0") @db.VarChar(12)
+  H8                      String?                   @default("0") @db.VarChar(12)
+  H9                      String?                   @default("0") @db.VarChar(12)
+  H10                     String?                   @default("0") @db.VarChar(12)
+  H11                     String?                   @default("0") @db.VarChar(12)
+  H12                     String?                   @default("0") @db.VarChar(12)
+  I1                      String?                   @default("0") @db.VarChar(12)
+  I2                      String?                   @default("0") @db.VarChar(12)
+  I3                      String?                   @default("0") @db.VarChar(12)
+  I4                      String?                   @default("0") @db.VarChar(12)
+  I5                      String?                   @default("0") @db.VarChar(12)
+  I6                      String?                   @default("0") @db.VarChar(12)
+  I7                      String?                   @default("0") @db.VarChar(12)
+  I8                      String?                   @default("0") @db.VarChar(12)
+  I9                      String?                   @default("0") @db.VarChar(12)
+  I10                     String?                   @default("0") @db.VarChar(12)
+  I11                     String?                   @default("0") @db.VarChar(12)
+  I12                     String?                   @default("0") @db.VarChar(12)
+  J1                      String?                   @default("0") @db.VarChar(12)
+  J2                      String?                   @default("0") @db.VarChar(12)
+  J3                      String?                   @default("0") @db.VarChar(12)
+  J4                      String?                   @default("0") @db.VarChar(12)
+  J5                      String?                   @default("0") @db.VarChar(12)
+  J6                      String?                   @default("0") @db.VarChar(12)
+  J7                      String?                   @default("0") @db.VarChar(12)
+  J8                      String?                   @default("0") @db.VarChar(12)
+  J9                      String?                   @default("0") @db.VarChar(12)
+  J10                     String?                   @default("0") @db.VarChar(12)
+  J11                     String?                   @default("0") @db.VarChar(12)
+  J12                     String?                   @default("0") @db.VarChar(12)
+  TestID                  Int?
+  UserID                  Int?
+  mac                     String?                   @db.VarChar(18)
+  Status                  Int?
+  tracelog_status         tracelog_status?          @relation(fields: [Status], references: [StatusID], onDelete: NoAction, onUpdate: NoAction, map: "fk_Status")
+  tracelog_zte_aging_reg  tracelog_zte_aging_reg[]
+  tracelog_zte_aging_test tracelog_zte_aging_test[]
+
+  @@index([Status], map: "fk_Status_idx")
+  @@index([UserID], map: "fk_User_idx")
+}
+
+model tracelog_zte_aging_reg {
+  id                     Int                     @id @default(autoincrement())
+  SerialNumber           String?                 @db.VarChar(12)
+  CarID                  Int?
+  CarPosition            String?                 @db.VarChar(4)
+  DataIn                 DateTime?               @db.DateTime(0)
+  DataOut                DateTime?               @db.DateTime(0)
+  TestTime               Int?
+  UserID_In              Int?
+  UserID_Out             Int?
+  TestID                 Int
+  Status                 Int?
+  rework                 String?                 @default("No") @db.VarChar(5)
+  tracelog_zte_aging_car tracelog_zte_aging_car? @relation(fields: [CarID], references: [CarID], onDelete: NoAction, onUpdate: NoAction, map: "fk_CarID")
+
+  @@index([CarID], map: "fk_CarID_idx")
+}
+
+model tracelog_zte_aging_test {
+  id                     Int                     @id @default(autoincrement())
+  CarID                  Int?
+  UserID                 Int?
+  TimeStart              DateTime?               @db.DateTime(0)
+  TimeEnd                DateTime?               @db.DateTime(0)
+  Status                 Int?
+  TestID                 Int
+  tracelog_zte_aging_car tracelog_zte_aging_car? @relation(fields: [CarID], references: [CarID], onDelete: NoAction, onUpdate: NoAction, map: "fk_CarID_test")
+  tracelog_status        tracelog_status?        @relation(fields: [Status], references: [StatusID], onDelete: NoAction, onUpdate: NoAction, map: "fk_Status_test")
+
+  @@index([CarID], map: "fk_CarID_test_idx")
+  @@index([Status], map: "fk_Status_test_idx")
+}
+
+model tracelog_zte_checkx {
+  id                Int      @id @default(autoincrement())
+  model             String   @db.VarChar(20)
+  sn_read           String   @db.VarChar(12)
+  sn                String   @db.VarChar(12)
+  flags             String   @db.VarChar(12)
+  soft_version      String   @db.VarChar(20)
+  test_sn           String   @db.VarChar(4)
+  test_flags        String   @db.VarChar(4)
+  test_soft_version String   @db.VarChar(4)
+  test_usb          String   @db.VarChar(4)
+  test_ssid         String   @db.VarChar(4)
+  test_status       String   @db.VarChar(6)
+  created           DateTime @db.DateTime(0)
+}
+
+model tracelog_zte_checkx_fail {
+  id           Int      @id @default(autoincrement())
+  SerialNumber String   @db.VarChar(20)
+  Fail         String   @db.VarChar(20)
+  UserId       Int
+  DataIn       DateTime @db.DateTime(0)
+}
+
+model tracelog_zte_old {
+  Id           Int       @id @default(autoincrement())
+  Line         String?   @db.VarChar(20)
+  FixtureID    String?   @db.VarChar(20)
+  UserID       Int?
+  TestType     String?   @db.VarChar(100)
+  StationID    String?   @db.VarChar(50)
+  SerialNumber String?   @db.VarChar(20)
+  Modelo       String?   @db.VarChar(50)
+  DataIn       DateTime? @db.DateTime(0)
+  DataLog      DateTime? @db.DateTime(0)
+  ErrorLine    String?   @db.VarChar(100)
+  Status       String?   @db.VarChar(20)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model tracelog_zte_old2 {
+  Line         String?   @db.VarChar(20)
+  FixtureID    String?   @db.VarChar(20)
+  UserID       Int?
+  TestType     String?   @db.VarChar(100)
+  StationID    String?   @db.VarChar(50)
+  SerialNumber String?   @db.VarChar(20)
+  Modelo       String?   @db.VarChar(50)
+  DataIn       DateTime? @db.DateTime(0)
+  DataLog      DateTime? @db.DateTime(0)
+  ErrorLine    String?   @db.VarChar(100)
+  Status       String?   @db.VarChar(20)
+
+  @@ignore
+}
+
+model tracelog_zte_old3 {
+  Id           Int       @id @default(autoincrement())
+  Line         String?   @db.VarChar(20)
+  FixtureID    String?   @db.VarChar(20)
+  UserID       Int?
+  TestType     String?   @db.VarChar(100)
+  StationID    String?   @db.VarChar(50)
+  SerialNumber String?   @db.VarChar(20)
+  Modelo       String?   @db.VarChar(50)
+  DataIn       DateTime? @db.DateTime(0)
+  DataLog      DateTime? @db.DateTime(0)
+  ErrorLine    String?   @db.VarChar(100)
+  Status       String?   @db.VarChar(20)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model tracelog_zte_old4 {
+  Id           Int?
+  Line         String?   @db.VarChar(20)
+  FixtureID    String?   @db.VarChar(20)
+  UserID       Int?
+  TestType     String?   @db.VarChar(100)
+  StationID    String?   @db.VarChar(50)
+  SerialNumber String?   @db.VarChar(20)
+  Modelo       String?   @db.VarChar(50)
+  DataIn       DateTime? @db.DateTime(0)
+  DataLog      DateTime? @db.DateTime(0)
+  ErrorLine    String?   @db.VarChar(100)
+  Status       String?   @db.VarChar(20)
+
+  @@ignore
+}
+
+model tracelog_zte_old_5 {
+  Id           Int       @id @default(autoincrement())
+  Line         String?   @db.VarChar(20)
+  FixtureID    String?   @db.VarChar(20)
+  UserID       Int?
+  TestType     String?   @db.VarChar(100)
+  StationID    String?   @db.VarChar(50)
+  SerialNumber String?   @db.VarChar(20)
+  Modelo       String?   @db.VarChar(50)
+  DataIn       DateTime? @db.DateTime(0)
+  DataLog      DateTime? @db.DateTime(0)
+  ErrorLine    String?   @db.VarChar(100)
+  Status       String?   @db.VarChar(20)
+
+  @@index([SerialNumber], map: "tracelog_zte_SerialNumber_IDX")
+}
+
+model tracelog_zte_pth {
+  id                  Int                 @id @default(autoincrement())
+  Line                String?             @db.VarChar(20)
+  UserID              String?             @db.VarChar(11)
+  Modelo              String?             @db.VarChar(50)
+  SerialNumber        String              @db.VarChar(12)
+  DataIn              DateTime?           @db.DateTime(0)
+  FailCode            String?             @db.VarChar(100)
+  Status              String?             @db.VarChar(20)
+  TouchUp             String?             @db.VarChar(10)
+  Component           String?             @db.VarChar(30)
+  tracelog_zte_pth_sn tracelog_zte_pth_sn @relation(fields: [SerialNumber], references: [SerialNumber], onDelete: NoAction, onUpdate: NoAction, map: "FK_SerialPTH")
+
+  @@index([SerialNumber], map: "FK_SerialPTH_idx")
+}
+
+model tracelog_zte_pth_sn {
+  id               Int                @unique(map: "id_UNIQUE") @default(autoincrement())
+  Line             String?            @db.VarChar(20)
+  UserID           String?            @db.VarChar(11)
+  Modelo           String?            @db.VarChar(50)
+  SerialNumber     String             @id @db.VarChar(12)
+  DataIn           DateTime?          @db.DateTime(0)
+  Status           String?            @db.VarChar(20)
+  TouchUp          String?            @default("No") @db.VarChar(10)
+  DataFail         DateTime?          @default(now()) @db.DateTime(0)
+  tracelog_zte_pth tracelog_zte_pth[]
+}
+
+model tracelog_zte_rework {
+  id              Int      @id @default(autoincrement())
+  snLabel         String?  @db.VarChar(30)
+  snBoard         String?  @db.VarChar(30)
+  userID          Int
+  userName        String   @db.VarChar(50)
+  readFlag        String?  @db.VarChar(20)
+  swVersion       String?  @db.VarChar(30)
+  hwVersion       String?  @db.VarChar(30)
+  ssid0           String?  @db.VarChar(30)
+  ssid4           String?  @db.VarChar(30)
+  dataIn          DateTime @db.Timestamp(0)
+  failDescription String?  @db.VarChar(100)
+}
+
+model turno {
+  id        Int     @id @default(autoincrement())
+  descricao String? @unique(map: "descricao_UNIQUE") @db.VarChar(45)
+}
+
+model user_at {
+  id               Int                @id @default(autoincrement())
+  user             String             @unique(map: "unique_user") @db.VarChar(100)
+  login            Int                @unique(map: "unique_login")
+  email            String             @db.VarChar(100)
+  password         String             @db.VarChar(255)
+  sector           String             @db.VarChar(30)
+  hierarchy        String             @db.VarChar(25)
+  profile          String             @db.VarChar(200)
+  UserCad          Int?
+  DateCad          DateTime?          @db.DateTime(0)
+  isOnline         String?            @db.VarChar(10)
+  DataLogin        DateTime?          @db.DateTime(0)
+  UserUpdate       Int?
+  DateUpdate       DateTime?          @db.DateTime(0)
+  reports_lcd_at   reports_lcd_at[]
+  reports_stove_at reports_stove_at[]
+}
+
+enum historico_tecnicos_action_type {
+  update
+  delete
+}
+
+enum support_tickets_status {
+  Open
+  In_Progress @map("In Progress")
+  Closed
+}
