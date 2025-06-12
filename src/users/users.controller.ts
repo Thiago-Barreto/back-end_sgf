@@ -39,6 +39,7 @@ export class UsersController {
     @Body() data: UserUpdate,
   ) {
     try {
+      console.log(UserID, data);
       return await this.userService.updateUserProfile(Number(UserID), data);
     } catch (error) {
       console.log(error);
