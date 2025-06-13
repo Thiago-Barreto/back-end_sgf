@@ -3,7 +3,7 @@
 import { Injectable } from '@nestjs/common';
 import * as moment from 'moment-timezone';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { NewProgrammingNpi } from './dto/npi.dto';
+import { NewProgrammingNpi, UpdateProgrammingNpi } from './dto/npi.dto';
 
 moment.locale();
 
@@ -36,17 +36,8 @@ export class NpiService {
         },
         orderBy: { id: 'desc' },
       });
-      const formattedDate = npi.map((item) => ({
-        ...item,
-        estimated_engineering_pilot_date: moment(
-          item.estimated_engineering_pilot_date,
-        ).format('DD/MM/YYYY'),
-        estimated_pilot_production_date: moment(
-          item.estimated_pilot_production_date,
-        ).format('DD/MM/YYYY'),
-      }));
-      console.log(formattedDate);
-      return formattedDate;
+      console.log(npi);
+      return npi;
     } catch (error) {
       console.log(error);
       throw error;
@@ -55,22 +46,100 @@ export class NpiService {
 
   async newProgrammingNpi(data: NewProgrammingNpi) {
     try {
-      console.log('Tá: ', data);
       const dateFormat = moment
         .tz('America/Manaus')
         .utc()
         .subtract(4, 'hours')
         .format();
+      const programmingAlready =
+        await this.prismaService.programming_npi.findFirst({
+          where: {
+            ...(data.family === 'TV' && { code: data.code }),
+            ...(data.family === 'DDR' && {
+              code: data.code,
+              lote_and_fixture: data.lote_and_fixture,
+              halb: data.halb,
+            }),
+          },
+        });
+
+      console.log(programmingAlready);
+
+      if (programmingAlready) {
+        return {
+          success: false,
+          message:
+            'Programação de npi já cadastrada. Por favor verifique os dados novamente.',
+          title: 'Pragramação Duplicada',
+        };
+      }
       await this.prismaService.programming_npi.create({
         data: {
           ...data,
           UserCreate: data.UserCreate,
           DateCreate: dateFormat,
-          date_of_the_month: data.estimated_engineering_pilot_date,
+          estimated_engineering_pilot_date: moment(
+            data.estimated_engineering_pilot_date,
+          ).format(),
+          estimated_pilot_production_date: moment(
+            data.estimated_pilot_production_date,
+          ).format(),
+          date_of_the_month: moment(
+            data.estimated_pilot_production_date,
+          ).format(),
+          status: 'Em Processo',
         },
       });
+      return {
+        title: 'NPI Programado!',
+        message:
+          'Programação de NPI cadastrada. Por favor, matenha atualizado a cada processo.',
+      };
     } catch (error) {
       console.log(error);
+    }
+  }
+
+  async updateProgrammingNpi(id: number, data: UpdateProgrammingNpi) {
+    try {
+      console.log(id, data);
+      let status = 'Em Processo';
+      if (
+        data.engineering_pilot_status === 'Atrasado' ||
+        data.production_pilot_status === 'Atrasado'
+      ) {
+        status = 'Atrasado';
+      } else if (
+        data.engineering_pilot_status === 'Concluído' &&
+        data.production_pilot_status === 'Concluído'
+      ) {
+        status = 'Concluído';
+      }
+
+      await this.prismaService.programming_npi.update({
+        data: {
+          ...data,
+          estimated_engineering_pilot_date: moment(
+            data.estimated_engineering_pilot_date,
+          ).format(),
+          estimated_pilot_production_date: moment(
+            data.estimated_pilot_production_date,
+          ).format(),
+          date_of_the_month: moment(
+            data.estimated_engineering_pilot_date,
+          ).format(),
+          status: status,
+        },
+        where: { id: Number(id) },
+      });
+      return {
+        title: 'NPI Atualizado!',
+        message:
+          'Programação de NPI atualizada. Por favor, matenha atualizado a cada processo.',
+      };
+    } catch (error) {
+      console.log(error);
+      throw error;
     }
   }
 }

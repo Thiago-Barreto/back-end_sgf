@@ -1,9 +1,9 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
 import { NpiService } from './npi.service';
-import { NewProgrammingNpi } from './dto/npi.dto';
+import { NewProgrammingNpi, UpdateProgrammingNpi } from './dto/npi.dto';
 
 @Controller('npi')
 export class NpiController {
@@ -21,8 +21,20 @@ export class NpiController {
   @Post('create')
   async newProgrammingNpi(@Body() data: NewProgrammingNpi) {
     try {
-      console.log(data);
+      // console.log(data);
       return await this.npiService.newProgrammingNpi(data);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  @Put('update/:id')
+  async updateProgrammingNpi(
+    @Param('id') id: number,
+    @Body() data: UpdateProgrammingNpi,
+  ) {
+    try {
+      return await this.npiService.updateProgrammingNpi(id, data);
     } catch (error) {
       console.log(error);
     }

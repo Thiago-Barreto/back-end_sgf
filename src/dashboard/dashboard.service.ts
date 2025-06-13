@@ -13,20 +13,18 @@ moment.locale('pt-br');
 export class DashboardService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async npi(month: number) {
+  async npi(month: string) {
     try {
-      const { startDate, endDate } = this.getMonthDateRange(month);
-
+      const [year, monthNumber] = month.split('-').map(Number);
+      const startDate = new Date(year, monthNumber - 1, 1);
+      const endDate = new Date(year, monthNumber, 0);
       const programming = await this.getProgrammingByMonth(startDate, endDate);
       const resultMonth = this.groupByStatus(programming);
       const formattedProgramming = this.formatProgrammingDates(programming);
 
-      const families = await this.getDistinctFamilies();
+      const families = await this.getDistinctFamilies(year);
       const monthlyCount = await this.countProgrammingByFamily(families);
-      const performanceResultData = await this.getNpiPerformanceAnalysis();
-
-      console.log('Performance: ', performanceResultData);
-
+      const performanceResultData = await this.getNpiPerformanceAnalysis(year);
       return {
         resultMonth,
         programming: formattedProgramming,
@@ -39,27 +37,13 @@ export class DashboardService {
       throw error;
     }
   }
-
-  private getMonthDateRange(month: number) {
-    const year = moment().year();
-
-    const startDate = moment
-      .tz({ year, month: month - 1, day: 1 }, 'America/Manaus')
-      .startOf('day')
-      .toDate();
-
-    const endDate = moment(startDate).endOf('month').endOf('day').toDate();
-
-    return { startDate, endDate };
-  }
-
   private async getProgrammingByMonth(
     start: Date,
     end: Date,
   ): Promise<ProgrammingNpi[]> {
     return (await this.prismaService.programming_npi.findMany({
       where: {
-        date_of_the_month: {
+        estimated_engineering_pilot_date: {
           gte: start,
           lte: end,
         },
@@ -105,8 +89,14 @@ export class DashboardService {
     }));
   }
 
-  private async getDistinctFamilies(): Promise<string[]> {
+  private async getDistinctFamilies(year): Promise<string[]> {
     const families = await this.prismaService.programming_npi.findMany({
+      where: {
+        estimated_engineering_pilot_date: {
+          gte: new Date(year, 0, 1),
+          lte: new Date(year, 11, 31),
+        },
+      },
       select: { family: true },
       distinct: ['family'],
     });
@@ -140,8 +130,15 @@ export class DashboardService {
     return monthlyCount;
   }
 
-  private async getNpiPerformanceAnalysis() {
-    const allProgramming = await this.prismaService.programming_npi.findMany();
+  private async getNpiPerformanceAnalysis(year) {
+    const allProgramming = await this.prismaService.programming_npi.findMany({
+      where: {
+        estimated_engineering_pilot_date: {
+          gte: new Date(year, 0, 1),
+          lte: new Date(year, 11, 31),
+        },
+      },
+    });
 
     const performanceResult = Array.from({ length: 12 }, (_, i) => ({
       month: moment().month(i).format('MMMM'),
@@ -162,30 +159,3 @@ export class DashboardService {
     return performanceResult;
   }
 }
-
-// private async getNpiPerformanceAnalysis() {
-//     const allProgramming = await this.prismaService.programming_npi.findMany();
-
-//     const performanceResult = Array.from({ length: 12 }, (_, i) => ({
-//       month: moment().month(i).format('MMMM'),
-//       total: 0,
-//       concluido: 0,
-//     }));
-
-//     let all = 0;
-//     let allComplete = 0;
-
-//     allProgramming.forEach((item) => {
-//       const monthIndex = new Date(item.date_of_the_month).getMonth();
-
-//       performanceResult[monthIndex].total += 1;
-//       all += 1;
-
-//       if (item.status === 'Concluído') {
-//         performanceResult[monthIndex].concluido += 1;
-//         allComplete += 1;
-//       }
-//     });
-
-//     return performanceResult;
-//   }
