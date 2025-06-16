@@ -31,6 +31,7 @@ export class ModelsService {
           createUser: true,
           createDate: true,
         },
+        orderBy: { ID: 'desc' },
       });
       return models;
     } catch (error) {

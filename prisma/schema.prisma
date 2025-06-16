@@ -281,31 +281,31 @@ model equipamentos {
 }
 
 model equipment {
-  id                              Int                      @id @default(autoincrement())
-  serial                          String                   @unique(map: "unique_serial") @db.VarChar(30)
-  code_sap                        String?                  @db.VarChar(40)
-  description                     String                   @db.VarChar(80)
-  family                          String                   @db.VarChar(45)
-  brand                           String                   @db.VarChar(60)
-  requiresCalibration             String?                  @db.VarChar(15)
-  calibrationCertificate          String?                  @db.VarChar(60)
-  invoice                         String?                  @db.VarChar(80)
-  dataInvoice                     DateTime?                @db.Date
-  dischargeDate                   DateTime?                @db.DateTime(0)
-  shed                            String                   @db.VarChar(20)
-  status                          String                   @db.VarChar(20)
-  location                        String                   @db.VarChar(45)
-  calibrationDate                 DateTime?                @db.Date
-  nextCalibration                 DateTime?                @db.Date
-  UserCad                         Int?
-  DateCad                         DateTime?                @db.DateTime(0)
-  UserUpdate                      Int?
-  DateUpdate                      DateTime?                @db.DateTime(0)
-  sector                          String                   @db.VarChar(25)
-  supplier                        supplier                 @relation(fields: [brand], references: [brand], onUpdate: Restrict, map: "fk_equipments_brand")
-  shed_equipment_shedToshed       shed                     @relation("equipment_shedToshed", fields: [shed], references: [shed], onUpdate: Restrict, map: "fk_equipments_shed")
-  status_equipment_statusTostatus status                   @relation("equipment_statusTostatus", fields: [status], references: [status], onUpdate: Restrict, map: "fk_equipments_status")
-  tracelog_mv_equipments          tracelog_mv_equipments[]
+  id                     Int                      @id @default(autoincrement())
+  serial                 String                   @unique(map: "unique_serial") @db.VarChar(30)
+  code_sap               String?                  @db.VarChar(40)
+  description            String                   @db.VarChar(80)
+  family                 String                   @db.VarChar(45)
+  brand                  String                   @db.VarChar(60)
+  requiresCalibration    String?                  @db.VarChar(15)
+  calibrationCertificate String?                  @db.VarChar(60)
+  invoice                String?                  @db.VarChar(80)
+  dataInvoice            DateTime?                @db.Date
+  dischargeDate          DateTime?                @db.DateTime(0)
+  shed                   String                   @db.VarChar(20)
+  status                 String                   @db.VarChar(20)
+  location               String                   @db.VarChar(45)
+  calibrationDate        DateTime?                @db.Date
+  nextCalibration        DateTime?                @db.Date
+  UserCad                Int?
+  DateCad                DateTime?                @db.DateTime(0)
+  UserUpdate             Int?
+  DateUpdate             DateTime?                @db.DateTime(0)
+  sector                 String                   @db.VarChar(25)
+  amount                 Decimal?                 @db.Decimal(10, 2)
+  product                String?                  @db.VarChar(100)
+  similar                String?                  @db.Text
+  tracelog_mv_equipments tracelog_mv_equipments[]
 
   @@index([brand], map: "brand")
   @@index([family], map: "family")
@@ -729,6 +729,9 @@ model programming_npi {
   production_pilot_status          String?   @db.VarChar(20)
   justification_production         String?   @db.Text
   date_of_the_month                DateTime  @db.Date
+  performance                      Int?
+
+  @@unique([code, lote_and_fixture], map: "programming_npi_unique")
 }
 
 model programming_npi_support {
@@ -978,7 +981,6 @@ model setor {
 model shed {
   id                                                       Int                      @id @default(autoincrement())
   shed                                                     String                   @unique(map: "unique_shed") @db.VarChar(20)
-  equipment_equipment_shedToshed                           equipment[]              @relation("equipment_shedToshed")
   equipments_process_equipments_process_shedToshed         equipments_process[]     @relation("equipments_process_shedToshed")
   jig_test_jig_test_shedToshed                             jig_test[]               @relation("jig_test_shedToshed")
   product_product_shedToshed                               product[]                @relation("product_shedToshed")
@@ -1081,7 +1083,6 @@ model spuser {
 model status {
   id                                   Int          @id @default(autoincrement())
   status                               String       @unique(map: "unique_status") @db.VarChar(20)
-  equipment_equipment_statusTostatus   equipment[]  @relation("equipment_statusTostatus")
   jig_test_jig_test_statusTostatus     jig_test[]   @relation("jig_test_statusTostatus")
   product_product_statusTostatus       product[]    @relation("product_statusTostatus")
   spare_part_spare_part_statusTostatus spare_part[] @relation("spare_part_statusTostatus")
@@ -1104,7 +1105,6 @@ model supplier {
   DateCad                                                  DateTime?            @db.DateTime(0)
   UserUpdate                                               Int?
   DateUpdate                                               DateTime?            @db.DateTime(0)
-  equipment                                                equipment[]
   equipments_process_equipments_process_supplierTosupplier equipments_process[] @relation("equipments_process_supplierTosupplier")
   jig_test                                                 jig_test[]
   product                                                  product[]
@@ -1808,7 +1808,7 @@ model tracelog_ssd_ddr_relationship {
 }
 
 model tracelog_ssd_sncontrol {
-  id              Int?             @default(autoincrement())
+  id              Int              @default(autoincrement())
   SerialNumber    String           @unique(map: "tracelog_ssd_sncontrol_SerialNumber_IDX") @db.VarChar(15)
   DataIn          DateTime?        @db.DateTime(0)
   DataPrint       DateTime?        @db.DateTime(0)

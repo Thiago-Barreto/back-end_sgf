@@ -142,4 +142,22 @@ export class NpiService {
       throw error;
     }
   }
+
+  async performance(id: number, data: { performance: number }) {
+    try {
+      console.log(data);
+      await this.prismaService.programming_npi.update({
+        where: { id: id },
+        data: { performance: Number(data.performance) },
+      });
+
+      return {
+        message: 'Performance adicionada com sucesso.',
+        title: 'Atualizar Performance',
+      };
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
 }

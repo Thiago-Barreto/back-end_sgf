@@ -37,6 +37,7 @@ export class DashboardService {
       throw error;
     }
   }
+
   private async getProgrammingByMonth(
     start: Date,
     end: Date,
@@ -119,10 +120,13 @@ export class DashboardService {
     });
 
     allProgramming.forEach((item) => {
-      const monthIndex = new Date(item.date_of_the_month).getMonth();
+      let monthIndex: number | null = null;
+      if (item.estimated_engineering_pilot_date) {
+        monthIndex = new Date(item.estimated_engineering_pilot_date).getMonth();
+      }
       const family = item.family;
 
-      if (families.includes(family)) {
+      if (monthIndex !== null && families.includes(family)) {
         monthlyCount[monthIndex][family] += 1;
       }
     });
@@ -147,12 +151,16 @@ export class DashboardService {
     }));
 
     allProgramming.forEach((item) => {
-      const monthIndex = new Date(item.date_of_the_month).getMonth();
+      let monthIndex = -1;
+      if (item.estimated_engineering_pilot_date) {
+        monthIndex = new Date(item.estimated_engineering_pilot_date).getMonth();
+      }
+      if (monthIndex !== -1) {
+        performanceResult[monthIndex].total += 1;
 
-      performanceResult[monthIndex].total += 1;
-
-      if (item.status === 'Concluído') {
-        performanceResult[monthIndex].concluido += 1;
+        if (item.status === 'Concluído') {
+          performanceResult[monthIndex].concluido += 1;
+        }
       }
     });
 
