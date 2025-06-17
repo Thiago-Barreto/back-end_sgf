@@ -3,7 +3,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { EquipmentDTO } from './dto/equipment.dto';
+import { EquipmentDTO, MvEquipmentDTO } from './dto/equipment.dto';
 import { factoryMap } from './utils/factory';
 import { stateMap } from './utils/state';
 import { sectorMap } from './utils/sector';
@@ -17,29 +17,10 @@ export class EquipmentsService {
     try {
       console.log(sector);
       const whereCondition =
-        sector === 'System Developer' ? {} : { sector: sector };
+        sector === 'System Developer'
+          ? {}
+          : { sector: sector, status: { not: 'DESATIVADO' } };
       const equipments = await this.prismaService.equipment.findMany({
-        select: {
-          id: true,
-          serial: true,
-          code_sap: true,
-          description: true,
-          family: true,
-          brand: true,
-          requiresCalibration: true,
-          calibrationCertificate: true,
-          invoice: true,
-          dataInvoice: true,
-          dischargeDate: true,
-          shed: true,
-          status: true,
-          location: true,
-          calibrationDate: true,
-          nextCalibration: true,
-          amount: true,
-          product: true,
-          similar: true,
-        },
         where: whereCondition,
       });
       return equipments;
@@ -96,13 +77,18 @@ export class EquipmentsService {
         await this.prismaService.equipment.create({
           data: {
             serial: newSerial,
-            description: data.description,
             code_sap: data.code_sap,
+            invoice: data.invoice,
+            dataInvoice: data.invoice === '' ? null : dateFormatLocal,
+            description: data.description,
             family: data.family,
+            product: data.product,
+            amount: Number(data.amount),
             brand: data.brand,
+            requiresCalibration: data.requiresCalibration,
             shed: data.shed,
             location: data.location,
-            status: 'ATIVO',
+            status: 'Bom',
             sector: sector,
             UserCad: data.UserCad,
             DateCad: dateFormatLocal,
@@ -111,8 +97,93 @@ export class EquipmentsService {
 
         currentSerial = newSerial;
       }
+
+      return {
+        message: `Equipamentos para o código '${data.code_sap}', cadastrados com sucesso.`,
+        title: 'Equipamentos Cadastrados',
+      };
     } catch (error) {
       console.log(error);
+    }
+  }
+
+  async updateEquipment(id: number, data: EquipmentDTO) {
+    try {
+      console.log(id, data);
+
+      await this.prismaService.equipment.update({
+        where: {
+          id: Number(id),
+        },
+        data: {
+          ...data,
+          nextCalibration:
+            data.nextCalibration === '' ? null : data.nextCalibration,
+          UserUpdate: data.UserUpdate,
+          DateUpdate: dateFormatLocal,
+        },
+      });
+
+      return {
+        message: 'Equipamento atualizado com sucesso.',
+        title: 'Atualização',
+      };
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async exitMovement(data: MvEquipmentDTO) {
+    try {
+      const alreadyEqpActive = await this.prismaService.mov_eqp.findMany({
+        where: {
+          id_code: data.id,
+          status: 'ATIVO',
+        },
+      });
+      if (alreadyEqpActive.length > 0) {
+        return {
+          result: false,
+          message: `Não foi possível realizar a movimentação, o equipamento já está 'ATIVO' na linha '${alreadyEqpActive[0]?.line}'`,
+          title: 'Equipamento em Linha',
+        };
+      }
+
+      await this.prismaService.mov_eqp.create({
+        data: {
+          id_code: data.id,
+          user_exit: data.user_exit,
+          date_exit: dateFormatLocal,
+          status: 'ATIVO',
+          line: data.line,
+          shed: data.shed,
+          user_return: data.user_return !== 0 ? Number(data.user_return) : null,
+          date_return: data.user_return !== 0 ? dateFormatLocal : null,
+        },
+      });
+      await this.prismaService.equipment.update({
+        where: {
+          id: data.id,
+        },
+        data: {
+          status: 'ATIVO',
+          location: data.line,
+        },
+      });
+      return {
+        result: 201,
+        message:
+          'Movimentação de equipamento realizada, acompanhe o retorno no modulo de movimentações.',
+        title: 'Movimentação realizada',
+      };
+    } catch (error) {
+      console.log(error);
+      return {
+        result: false,
+        message:
+          'Erro ao processar a movimentação. Se o erro persistir, entrar em contato com a Eng. de Software, IMEDIATAMENTE.',
+        title: 'Erro desconhecido',
+      };
     }
   }
 }

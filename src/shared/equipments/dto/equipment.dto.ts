@@ -22,4 +22,18 @@ export interface EquipmentDTO {
   amount: number;
   product: string;
   similar: string;
+  UserUpdate: number;
+}
+
+export interface MvEquipmentDTO {
+  id: number;
+  id_code: number;
+  user_exit: number;
+  date_exit: string;
+  status: string;
+  line: string;
+  shed: string;
+  shedMov: string;
+  user_return: number;
+  date_return: string;
 }

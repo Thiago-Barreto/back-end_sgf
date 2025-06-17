@@ -305,6 +305,7 @@ model equipment {
   amount                 Decimal?                 @db.Decimal(10, 2)
   product                String?                  @db.VarChar(100)
   similar                String?                  @db.Text
+  mov_eqp                mov_eqp[]
   tracelog_mv_equipments tracelog_mv_equipments[]
 
   @@index([brand], map: "brand")
@@ -460,14 +461,18 @@ model material_at {
 }
 
 model mov_eqp {
-  idmov_entrada Int       @id @default(autoincrement())
-  destino_ini   String?   @db.VarChar(45)
-  destino_final String?   @db.VarChar(45)
-  galpao        String?   @db.VarChar(45)
-  tipo          String?   @db.VarChar(45)
-  data          DateTime? @db.DateTime(0)
-  usuario       String?   @db.VarChar(45)
-  serial        String?   @db.VarChar(45)
+  id          Int       @id @default(autoincrement())
+  id_code     Int
+  user_exit   Int
+  date_exit   DateTime  @db.DateTime(0)
+  status      String    @db.VarChar(20)
+  line        String?   @db.VarChar(15)
+  shed        String?   @db.VarChar(10)
+  user_return Int?
+  date_return DateTime? @db.DateTime(0)
+  equipment   equipment @relation(fields: [id_code], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_eqp_mv_eqp")
+
+  @@index([id_code], map: "id_code")
 }
 
 model mov_jigs {
